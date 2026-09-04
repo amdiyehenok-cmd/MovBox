@@ -51,6 +51,12 @@ interface WatchSessionProps {
   seasons?: SeasonInfo[];
   watchlistMedia?: Parameters<typeof WatchlistButton>[0]["media"];
   onEnded?: () => void;
+  /**
+   * True while the parent (WatchView) is still fetching sources. Passed
+   * down to the player so it can show a clean loading skeleton instead
+   * of flashing the "No sources" empty-state before data arrives.
+   */
+  loading?: boolean;
 }
 
 /**
@@ -69,6 +75,7 @@ export function WatchSession(props: WatchSessionProps) {
   const {
     type,
     detailPath,
+    loading = false,
     sources,
     captions,
     title,
@@ -113,6 +120,7 @@ export function WatchSession(props: WatchSessionProps) {
             poster={backdropUrl ?? posterUrl}
             title={title}
             detailPath={detailPath}
+            loading={loading}
             metaLine={
               type === "tv" && seasonNumber != null && episodeNumber != null
                 ? `S${seasonNumber} · E${episodeNumber} · ${title}`

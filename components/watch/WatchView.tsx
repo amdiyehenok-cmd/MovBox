@@ -97,6 +97,35 @@ export function WatchView(props: WatchViewProps) {
     );
   }
 
+  // When sources are still arriving (isInitialLoad=false because of stale
+  // cache, but new fetch in flight) we render the player in its
+  // "loading" state instead of the page-level skeleton. The player
+  // will switch to playing the moment the fetch resolves.
+  if (loading && sources.length === 0) {
+    return (
+      <div className="space-y-5 px-3 sm:px-0 md:space-y-8">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_360px] lg:gap-5">
+          <div className="min-w-0">
+            <Player
+              sources={[]}
+              captions={[]}
+              activeSourceIndex={0}
+              onSourceChange={() => {}}
+              poster={props.backdropUrl ?? props.posterUrl}
+              title={props.title}
+              detailPath={props.detailPath}
+              loading
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="skeleton h-10 w-full rounded-md" />
+            <div className="skeleton h-10 w-full rounded-md" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isEmpty) {
     return (
       <div className="space-y-6">
@@ -140,6 +169,7 @@ export function WatchView(props: WatchViewProps) {
       {...props}
       sources={sources}
       captions={captions}
+      loading={loading}
     />
   );
 }

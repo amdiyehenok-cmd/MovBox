@@ -9,7 +9,7 @@ const COLUMNS = [
       { href: "/tv", label: "TV Shows" },
       { href: "/genres", label: "Genres" },
       { href: "/trending", label: "Trending" },
-      { href: "/coming-soon", label: "Coming Soon" },
+      { href: "/movbox-app", label: "Movbox App" },
     ],
   },
   {

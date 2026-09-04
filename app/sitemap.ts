@@ -13,7 +13,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/tv`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${SITE_URL}/trending`, lastModified: now, changeFrequency: "hourly", priority: 0.8 },
     { url: `${SITE_URL}/genres`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${SITE_URL}/coming-soon`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
+    { url: `${SITE_URL}/movbox-app`, lastModified: now, changeFrequency: "daily", priority: 0.7 },
     { url: `${SITE_URL}/search`, lastModified: now, changeFrequency: "never", priority: 0.5 },
   ];
 }

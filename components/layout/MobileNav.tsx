@@ -11,7 +11,7 @@ const ITEMS = [
   { href: "/tv", label: "TV", icon: Tv },
   { href: "/animations", label: "Anime", icon: Sparkles },
   { href: "/most-watched", label: "Top", icon: Flame },
-  { href: "/coming-soon", label: "App", icon: AppWindow },
+  { href: "/movbox-app", label: "App", icon: AppWindow },
 ];
 
 /**

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ChevronRight,
+  Download,
   Play,
   Plus,
   Share2,
@@ -192,6 +193,12 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
                   <Link href={watchHref}>
                     <Play className="h-4 w-4 fill-current" />
                     Watch Now
+                  </Link>
+                </Button>
+                <Button asChild variant="accent" size="lg" className="flex-1 shadow-glow sm:flex-none">
+                  <Link href="/movbox-app">
+                    <Download className="h-4 w-4" />
+                    Download
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="flex-1 sm:flex-none">

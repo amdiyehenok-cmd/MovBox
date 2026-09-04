@@ -80,6 +80,13 @@ export interface PlayerProps {
   onEnded?: () => void;
   onRetry?: () => void;
   onAutoFallback?: (fromIndex: number, toIndex: number) => void;
+  /**
+   * True while the parent (WatchView) is still fetching sources. The
+   * player shows a clean loading skeleton in this state instead of
+   * flashing the "No sources available" empty-state before the real
+   * data arrives — that flash was the worst UX bug on the watch page.
+   */
+  loading?: boolean;
 }
 
 const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
@@ -198,6 +205,7 @@ export function Player({
   onEnded,
   onRetry,
   onAutoFallback,
+  loading: externalLoading = false,
 }: PlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -205,6 +213,10 @@ export function Player({
 
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
+  // The parent (WatchView) is still fetching sources. While true, the
+  // player shows a clean loading skeleton and never flashes the "no
+  // sources" empty-state, which was the most visible bug on the page.
+  const isLoading = loading || externalLoading;
   const [error, setError] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(1);
@@ -710,7 +722,34 @@ export function Player({
   );
 
   // -------------------------------------------------------------------------
-  // Empty state
+  // Loading skeleton — shown while sources are still being fetched
+  // (prevents the flash of the "No sources" empty state when the page
+  // first loads).
+  // -------------------------------------------------------------------------
+
+  if (isLoading && (!sources.length || !activeSource)) {
+    return (
+      <div
+        ref={containerRef}
+        className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-xl border border-border bg-bg-primary"
+        style={{
+          backgroundImage: poster
+            ? `linear-gradient(rgba(8,6,6,0.85), rgba(8,6,6,0.95)), url(${poster})`
+            : undefined,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-12 w-12 animate-spin text-accent-bright" />
+          <p className="font-display text-sm text-cream">Loading…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Empty state — sources fetched and genuinely zero
   // -------------------------------------------------------------------------
 
   if (!sources.length || !activeSource) {

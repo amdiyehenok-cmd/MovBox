@@ -1,44 +1,46 @@
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 /**
- * Movbox brand mark.
- * The "M" is rendered in Cinzel display serif (burgundy), the "ovbox" wordmark in Inter.
- * Matches the brand: lowercase "ovbox" + capital "M" gives a premium, distinctive look.
+ * Movbox brand mark. The full wordmark ("M" + "ovbox" in lowercase
+ * Cinzel + Inter) ships as `/movbox_logo_nav.png` and is loaded via
+ * next/image so it's optimized + lazy-loaded. The icon-only mark
+ * lives at `/movbox_icon.png` for compact spots (favicon, app icon).
  */
 export function Logo({
   className,
   href = "/",
   size = "md",
+  variant = "wordmark",
 }: {
   className?: string;
   href?: string;
   size?: "sm" | "md" | "lg";
+  /** "wordmark" = full logo with text. "icon" = icon only. */
+  variant?: "wordmark" | "icon";
 }) {
-  const sizes = {
-    sm: { h: "text-lg", w: "text-lg" },
-    md: { h: "text-2xl", w: "text-xl" },
-    lg: { h: "text-4xl", w: "text-3xl" },
+  const heights = {
+    sm: 22,
+    md: 30,
+    lg: 44,
   } as const;
 
   return (
     <Link
       href={href}
-      className={cn(
-        "group inline-flex items-baseline gap-0.5 font-display font-bold tracking-tight",
-        className
-      )}
+      className={cn("inline-flex shrink-0 items-center", className)}
       aria-label="Movbox — Home"
     >
-      <span
-        className={cn(
-          "text-brand transition-colors group-hover:text-accent-bright",
-          sizes[size].h
-        )}
-      >
-        M
-      </span>
-      <span className={cn("text-text-primary", sizes[size].w)}>ovbox</span>
+      <Image
+        src={variant === "icon" ? "/movbox_icon.png" : "/movbox_logo_nav.png"}
+        alt="Movbox"
+        width={variant === "icon" ? heights[size] : heights[size] * 4}
+        height={heights[size]}
+        priority
+        className="h-auto w-auto"
+        style={{ height: heights[size] }}
+      />
     </Link>
   );
 }

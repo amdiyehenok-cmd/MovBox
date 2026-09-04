@@ -15,7 +15,7 @@ const NAV = [
   { href: "/tv", label: "TV Shows" },
   { href: "/animations", label: "Animations" },
   { href: "/most-watched", label: "Most Watched" },
-  { href: "/coming-soon", label: "Movbox App" },
+  { href: "/movbox-app", label: "Movbox App" },
 ];
 
 /**
