@@ -92,9 +92,17 @@ export const CERTIFICATIONS = [
 /** Site name used everywhere */
 export const SITE_NAME = "Movbox";
 
-/** Public site URL (override via env) */
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://movbox.xyz";
+/**
+ * Public site URL. Set NEXT_PUBLIC_SITE_URL in env to override the
+ * default. We only accept valid http(s) URLs — a stray "y" or empty
+ * value falls back to the canonical movbox.xyz instead of breaking
+ * the build (e.g. with `new URL("y")` in Next.js's metadataBase).
+ */
+export const SITE_URL = (() => {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (raw && /^https?:\/\//i.test(raw)) return raw.replace(/\/+$/, "");
+  return "https://movbox.xyz";
+})();
 
 /** Default locale */
 export const DEFAULT_LOCALE = "en-US";

@@ -3,6 +3,7 @@ import { Cinzel, Inter } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Footer } from "@/components/layout/Footer";
+import { SITE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -20,9 +21,7 @@ const cinzel = Cinzel({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://movbox.xyz"
-  ),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Movbox — Watch Movies, TV Shows & More",
     template: "%s | Movbox",
