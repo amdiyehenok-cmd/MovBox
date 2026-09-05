@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/boxmovies";
+import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/data";
 import { MovieDetailView } from "@/components/detail/MovieDetailView";
 import { SITE_NAME } from "@/lib/constants";
 

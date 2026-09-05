@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/boxmovies";
+import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/data";
 import { toMediaCard } from "@/lib/adapters";
 import { TVWatchProvider } from "@/lib/watch-context";
 

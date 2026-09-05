@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { WatchView } from "@/components/watch/WatchView";
-import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/boxmovies";
+import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/data";
 import { toMediaCard } from "@/lib/adapters";
 import { SITE_NAME } from "@/lib/constants";
 
