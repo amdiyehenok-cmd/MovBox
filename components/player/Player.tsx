@@ -32,6 +32,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import type { BoxSource, BoxCaption } from "@/lib/types";
+import { PrerollAd } from "@/components/ads/PrerollAd";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -226,6 +227,10 @@ export function Player({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPiP, setIsPiP] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(null);
+  // Pre-roll in-stream video ad via Adcash VAST. Shows once per
+  // session on the first user-initiated play. The component handles
+  // its own session cap (localStorage).
+  const [showPreroll, setShowPreroll] = useState(false);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [subtitleMenuOpen, setSubtitleMenuOpen] = useState(false);
@@ -585,8 +590,27 @@ export function Player({
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (v.paused) v.play().catch(() => {});
-    else v.pause();
+    if (v.paused) {
+      // First user-initiated play in a session: trigger the pre-roll
+      // ad (if PrerollAd hasn't already run). On the next play (after
+      // pre-roll completes, or skipped/error) we call play() directly.
+      if (!showPreroll) {
+        setShowPreroll(true);
+        return;
+      }
+      v.play().catch(() => {});
+    } else {
+      v.pause();
+    }
+  }, [showPreroll]);
+
+  const handlePrerollComplete = useCallback(() => {
+    setShowPreroll(false);
+    // Start the actual content immediately after the pre-roll.
+    const v = videoRef.current;
+    if (v && v.paused) {
+      v.play().catch(() => {});
+    }
   }, []);
 
   const handleVolumeChange = useCallback(
@@ -805,7 +829,12 @@ export function Player({
         playsInline
         crossOrigin="anonymous"
         onClick={togglePlay}
-        onPlay={() => setPlaying(true)}
+        onPlay={() => {
+          setPlaying(true);
+          // The pre-roll trigger fires from a user click on the
+          // overlay, not from the video's own onPlay (which also
+          // fires when the pre-roll finishes and we call .play()).
+        }}
         onPause={() => setPlaying(false)}
         onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
         onProgress={(e) => {
@@ -826,6 +855,14 @@ export function Player({
           if (!error) setError("Stream error. Try a different source.");
         }}
       />
+
+      {/* In-stream video pre-roll (Adcash VAST). Sits over the player
+          on the first user-initiated play of a session, then dismisses
+          and the actual content starts. The Player keeps its own
+          session cap via the component's localStorage check. */}
+      {showPreroll && !isLoading && (
+        <PrerollAd onComplete={handlePrerollComplete} />
+      )}
 
       {/* Source fallback banner */}
       {loading && autoFallbackCount > 0 && sources.length > 1 && (

@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Footer } from "@/components/layout/Footer";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { AdcashLoader } from "@/components/ads/AdcashLoader";
 import { SITE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -95,9 +96,12 @@ export default function RootLayout({
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
         <Footer />
         <MobileNav />
-        {/* Site-wide social bar (Adsterra 31080288). Frequency-capped
-            + dismissible via lib/ads/frequency.ts. Renders nothing
-            if the user has already dismissed it or hit the cap. */}
+        {/* Adcash auto-tag (1647124) — rotates Pop / Interstitial /
+            In-Page Push / Video Slider with a balanced UX/$ weight.
+            Site-wide. After-interactive so it never blocks first paint. */}
+        <AdcashLoader />
+        {/* Adsterra social bar (31080288) — bottom sticky push bar.
+            Frequency-capped + dismissible via lib/ads/frequency.ts. */}
         <AdSlot name="social-bar" />
       </body>
     </html>
