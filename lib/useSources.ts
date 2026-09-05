@@ -111,7 +111,10 @@ export function useSources({
             const errBody = await res.json().catch(() => ({}));
             throw new Error(errBody.error || `HTTP ${res.status}`);
           }
-          const json = (await res.json()) as BoxSourceGroup & { ok: boolean };
+          const json = (await res.json()) as BoxSourceGroup & {
+            ok: boolean;
+            error?: string;
+          };
           if (!json.ok) {
             throw new Error(json.error || "boxmovies returned ok:false");
           }
@@ -132,15 +135,14 @@ export function useSources({
           }
         } catch (err) {
           const msg = err instanceof Error ? err.message : "Failed to load sources";
-          const empty: BoxSourceGroup = {
-            ok: false as unknown as true,
+          const empty = {
             detailPath,
             season,
             episode,
             sources: [],
             captions: [],
             count: 0,
-          };
+          } as unknown as BoxSourceGroup;
           const current = SUBSCRIBERS.get(key);
           if (current) {
             current.forEach((fn) => {

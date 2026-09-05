@@ -62,8 +62,8 @@ function WatchTVPage() {
 
   // Keep previous sources/captions mounted while the new ones load,
   // so the player never blanks out on episode change.
-  const [prevSources, setPrevSources] = useState<typeof sourcesType>([]);
-  const [prevCaptions, setPrevCaptions] = useState<typeof captionsType>([]);
+  const [prevSources, setPrevSources] = useState<BoxSource[]>([]);
+  const [prevCaptions, setPrevCaptions] = useState<BoxCaption[]>([]);
 
   const { data, loading } = useSources({
     detailPath: details.detailPath,

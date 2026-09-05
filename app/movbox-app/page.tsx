@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Smartphone, Bell, Star, Shield } from "lucide-react";
+import { InstallCTA } from "@/components/ads/InstallCTA";
+import { WaitlistForm } from "@/components/ads/WaitlistForm";
 
 export const metadata: Metadata = {
   title: "Movbox App — Coming Soon",
@@ -51,21 +53,25 @@ export default function MovboxAppPage() {
         </div>
       </div>
 
-      <div className="mt-12 rounded-2xl border border-accent/20 bg-gradient-to-br from-brand/10 via-surface/60 to-accent/5 p-8 text-center">
-        <Bell className="mx-auto mb-3 h-8 w-8 text-accent-bright" />
-        <h2 className="font-display text-xl font-semibold text-cream md:text-2xl">
-          The app is in development
-        </h2>
-        <p className="mt-2 text-sm text-text-secondary">
-          Want to be the first to know when it launches? Follow us for the
-          official release announcement.
-        </p>
-        <a
-          href="/"
-          className="mt-6 inline-flex items-center justify-center rounded-full bg-brand px-6 py-3 text-sm font-semibold text-cream shadow-glow transition-all hover:bg-brand/90"
-        >
-          Back to Movbox
-        </a>
+      <div className="mt-12 grid gap-6">
+        <InstallCTA />
+        <div className="rounded-2xl border border-accent/20 bg-gradient-to-br from-brand/10 via-surface/60 to-accent/5 p-8 text-center">
+          <Bell className="mx-auto mb-3 h-8 w-8 text-accent-bright" />
+          <h2 className="font-display text-xl font-semibold text-cream md:text-2xl">
+            The app is in development
+          </h2>
+          <p className="mt-2 text-sm text-text-secondary">
+            Want to be the first to know when it launches? Drop your email and
+            we'll ping you the moment it goes live.
+          </p>
+          <WaitlistForm source="movbox-app" />
+          <a
+            href="/"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-brand px-6 py-3 text-sm font-semibold text-cream shadow-glow transition-all hover:bg-brand/90"
+          >
+            Back to Movbox
+          </a>
+        </div>
       </div>
     </div>
   );

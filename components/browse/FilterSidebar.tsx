@@ -36,6 +36,12 @@ export interface FilterSidebarProps {
   options: FilterOptions;
   filters: FilterState;
   onChange: (next: FilterState) => void;
+  /** Discriminator for the BrowseGrid context. Filters the year
+   *  and country dropdowns to movie- or tv-appropriate values. */
+  mediaType?: "movie" | "tv";
+  /** Optional pre-selected genre ID. Used by /genres/[id] so the
+   *  "genre" pill in the sidebar shows the active genre. */
+  baseGenreId?: number;
   /**
    * If true, render Genre + Language axes. /animations sets this false.
    */

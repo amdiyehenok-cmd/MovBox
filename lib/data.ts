@@ -729,8 +729,8 @@ export async function getBoxmoviesDetail(
       uploadBy: resource.uploadBy || null,
       trailer: trailerUrl ? { url: trailerUrl, source: "boxmovies" } : null,
       seasons,
-      cast,
-      reviews,
+      cast: cast.filter(Boolean) as BoxDetail["cast"],
+      reviews: reviews.filter(Boolean) as BoxDetail["reviews"],
     };
   } catch {
     return null;

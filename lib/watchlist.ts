@@ -1,8 +1,8 @@
 /**
- * Watchlist storage — localStorage based, no auth required.
+ * Watchlist storage â€” localStorage based, no auth required.
  * Each entry: { id, type, title, posterPath, addedAt }
  * SSR-safe: every accessor checks `typeof window`.
- * Migrated from `hmovies:watchlist` to `movbox:watchlist` — we read
+ * Migrated from `hmovies:watchlist` to `movbox:watchlist` â€” we read
  * the legacy key for backwards compatibility, then re-save under the
  * new key on the next write.
  */
@@ -70,7 +70,7 @@ function write(entries: WatchlistEntry[]) {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(entries));
   } catch {
-    /* quota / disabled storage — silently no-op */
+    /* quota / disabled storage â€” silently no-op */
   }
 }
 
@@ -78,7 +78,7 @@ export function getWatchlist(): WatchlistEntry[] {
   return read();
 }
 
-export function isInWatchlist(id: number, type: "movie" | "tv"): boolean {
+export function isInWatchlist(id: string, type: "movie" | "tv"): boolean {
   return read().some((e) => e.id === id && e.type === type);
 }
 
@@ -101,7 +101,7 @@ export function addToWatchlist(item: MediaCard): void {
   window.dispatchEvent(new CustomEvent("hmovies:watchlist-change")); // legacy
 }
 
-export function removeFromWatchlist(id: number, type: "movie" | "tv"): void {
+export function removeFromWatchlist(id: string, type: "movie" | "tv"): void {
   write(read().filter((e) => !(e.id === id && e.type === type)));
   window.dispatchEvent(new CustomEvent("movbox:watchlist-change"));
   window.dispatchEvent(new CustomEvent("hmovies:watchlist-change")); // legacy

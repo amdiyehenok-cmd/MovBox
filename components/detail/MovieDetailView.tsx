@@ -72,9 +72,9 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
 
   return (
     <div className="min-h-screen bg-bg-deepest text-text-primary">
-      {/* ─── HERO ─── */}
+      {/* â”€â”€â”€ HERO â”€â”€â”€ */}
       <section className="relative isolate overflow-hidden">
-        {/* Backdrop — full-bleed cover, smooth gradient for legibility. */}
+        {/* Backdrop â€” full-bleed cover, smooth gradient for legibility. */}
         <div className="absolute inset-0 -z-10">
           {backdrop ? (
             <img
@@ -96,7 +96,7 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
         </div>
 
         <div className="mx-auto max-w-7xl px-3 pb-10 pt-16 sm:px-5 md:px-6 md:pt-20">
-          {/* Breadcrumb — hidden on small mobile, visible md+ */}
+          {/* Breadcrumb â€” hidden on small mobile, visible md+ */}
           <nav className="mb-4 hidden items-center gap-1.5 text-sm text-text-secondary md:flex md:mb-6">
             <Link href="/" className="hover:text-cream">Home</Link>
             <ChevronRight className="h-3.5 w-3.5 text-text-muted" />
@@ -106,12 +106,12 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
           </nav>
           {/* Compact mobile breadcrumb (single line) */}
           <nav className="mb-3 flex items-center gap-1 text-xs text-text-muted md:hidden">
-            <Link href="/movies" className="hover:text-cream">← Movies</Link>
-            <span className="line-clamp-1">· {details.title}</span>
+            <Link href="/movies" className="hover:text-cream">â† Movies</Link>
+            <span className="line-clamp-1">Â· {details.title}</span>
           </nav>
 
           <div className="grid grid-cols-[120px_1fr] items-start gap-4 sm:grid-cols-[150px_1fr] sm:gap-5 md:grid-cols-[200px_1fr] md:gap-6 lg:grid-cols-[260px_1fr]">
-            {/* Poster — small thumbnail on mobile (120-150px), full size on lg */}
+            {/* Poster â€” small thumbnail on mobile (120-150px), full size on lg */}
             <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg border border-border bg-surface shadow-elevated md:rounded-xl">
               {poster ? (
                 <img
@@ -157,7 +157,7 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
                 {details.country && <span className="hidden sm:inline">{details.country}</span>}
                 {details.genres.slice(0, 3).map((g, i) => (
                   <span key={g}>
-                    {i > 0 && <span className="text-text-muted">· </span>}
+                    {i > 0 && <span className="text-text-muted">Â· </span>}
                     {g}
                   </span>
                 ))}
@@ -180,14 +180,14 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
                 )}
               </div>
 
-              {/* Synopsis — hidden on tiny mobile, visible sm+ */}
+              {/* Synopsis â€” hidden on tiny mobile, visible sm+ */}
               {details.synopsis && (
                 <p className="mt-3 hidden max-w-3xl text-sm leading-relaxed text-text-primary sm:block md:mt-4 md:text-base">
                   {details.synopsis}
                 </p>
               )}
 
-              {/* Actions — full width on mobile */}
+              {/* Actions â€” full width on mobile */}
               <div className="mt-3 flex flex-wrap items-center gap-2 sm:mt-5 sm:gap-3">
                 <Button asChild variant="primary" size="lg" className="flex-1 sm:flex-none">
                   <Link href={watchHref}>
@@ -201,7 +201,7 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
                     Download
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" className="flex-1 sm:flex-none">
+                <Button variant="secondary" size="lg" className="flex-1 sm:flex-none">
                   <Plus className="h-4 w-4" />
                   My List
                 </Button>
@@ -218,7 +218,7 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
                 </div>
               </div>
 
-              {/* Available in chips — derived from boxmovies subtitles + duration */}
+              {/* Available in chips â€” derived from boxmovies subtitles + duration */}
               <div className="mt-3 hidden flex-wrap items-center gap-2 text-xs text-text-muted sm:mt-4 sm:flex">
                 <span>Available in:</span>
                 {details.availableSubtitleLanguages.length > 0 && (
@@ -240,7 +240,7 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
         </div>
       </section>
 
-      {/* ─── TABS ─── */}
+      {/* â”€â”€â”€ TABS â”€â”€â”€ */}
       <nav className="border-b border-border">
         <div className="mx-auto max-w-7xl px-2 sm:px-5 md:px-6">
           <ul className="flex items-center gap-4 overflow-x-auto text-sm sm:gap-6">
@@ -276,10 +276,10 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
         </div>
       </nav>
 
-      {/* ─── MAIN LAYOUT: left content + right sidebars ─── */}
+      {/* â”€â”€â”€ MAIN LAYOUT: left content + right sidebars â”€â”€â”€ */}
       <div className="mx-auto max-w-7xl px-3 py-5 sm:px-5 sm:py-6 md:px-6 md:py-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
-          {/* ─── LEFT (main) ─── */}
+          {/* â”€â”€â”€ LEFT (main) â”€â”€â”€ */}
           <div className="min-w-0 space-y-6">
             {tab === "overview" && (
               <>
@@ -299,19 +299,19 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
                       ...(details.uploadBy
                         ? [[<Building2 key="u-icon" className="h-4 w-4" />, "Uploaded by", details.uploadBy]]
                         : []),
-                      [<Calendar key="rd-icon" className="h-4 w-4" />, "Release Date", formatYear(details.releaseDate) || "—"],
+                      [<Calendar key="rd-icon" className="h-4 w-4" />, "Release Date", formatYear(details.releaseDate) || "â€”"],
                       ...(details.durationLabel
                         ? [[<Clock key="du-icon" className="h-4 w-4" />, "Duration", details.durationLabel]]
                         : []),
                       ...(details.country
                         ? [[<Globe2 key="co-icon" className="h-4 w-4" />, "Country", details.country]]
                         : []),
-                      [<Tag key="ge-icon" className="h-4 w-4" />, "Genres", details.genres.join(", ") || "—"],
+                      [<Tag key="ge-icon" className="h-4 w-4" />, "Genres", details.genres.join(", ") || "â€”"],
                     ]}
                   />
                 </Panel>
 
-                {/* Watch Trailer — embedded HTML5 player using the boxmovies
+                {/* Watch Trailer â€” embedded HTML5 player using the boxmovies
                     trailer URL. If boxmovies didn't provide a trailer URL,
                     fall back to a clickable thumbnail that opens the player. */}
                 <Panel title="Watch Trailer">
@@ -367,7 +367,7 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
                     <div>
                       <div className="flex items-end gap-1.5">
                         <span className="font-display text-5xl font-bold text-cream">
-                          {details.rating != null ? details.rating.toFixed(1) : "—"}
+                          {details.rating != null ? details.rating.toFixed(1) : "â€”"}
                         </span>
                         <span className="mb-1.5 text-base text-text-muted">/10</span>
                       </div>
@@ -483,7 +483,7 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
                   <textarea
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
-                    placeholder="Share your thoughts on this movie…"
+                    placeholder="Share your thoughts on this movieâ€¦"
                     className="w-full resize-none bg-transparent text-sm text-cream placeholder:text-text-muted focus:outline-none"
                     rows={3}
                   />
@@ -548,13 +548,13 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
                     ))}
                   </div>
                 ) : (
-                  <p className="px-1 text-sm text-text-muted">No recommendations yet — keep watching!</p>
+                  <p className="px-1 text-sm text-text-muted">No recommendations yet â€” keep watching!</p>
                 )}
               </Panel>
             )}
           </div>
 
-          {/* ─── RIGHT (sidebars) ─── */}
+          {/* â”€â”€â”€ RIGHT (sidebars) â”€â”€â”€ */}
           <aside className="space-y-6">
             {/* Top Cast sidebar */}
             {actors.length > 0 && (
@@ -619,8 +619,8 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
                         <div className="min-w-0 flex-1">
                           <p className="line-clamp-1 text-sm font-medium text-cream">{m.title}</p>
                           <p className="text-xs text-text-muted">
-                            {m.year ?? "—"}
-                            {m.rating ? ` · ${m.rating.toFixed(1)}` : ""}
+                            {m.year ?? "â€”"}
+                            {m.rating ? ` Â· ${m.rating.toFixed(1)}` : ""}
                           </p>
                         </div>
                       </Link>
@@ -653,7 +653,7 @@ export function MovieDetailView({ details, related = [] }: MovieDetailViewProps)
   );
 }
 
-// ─── Helper components ───
+// â”€â”€â”€ Helper components â”€â”€â”€
 
 function Panel({
   title,
@@ -806,9 +806,9 @@ function ShareMenu({ onClose }: { onClose: () => void }) {
       </div>
       <div className="grid grid-cols-4 gap-1 p-2">
         <ShareBtn icon={<Copy className="h-4 w-4" />} label={copied ? "Copied" : "Copy"} onClick={copy} active={copied} />
-        <ShareBtn icon={<Facebook className="h-4 w-4" />} label="FB" onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank")} />
-        <ShareBtn icon={<Twitter className="h-4 w-4" />} label="X" onClick={() => window.open(`https://twitter.com/intent/tweet?url=${url}`, "_blank")} />
-        <ShareBtn icon={<Linkedin className="h-4 w-4" />} label="In" onClick={() => window.open(`https://www.linkedin.com/sharing/share-site/?url=${url}`, "_blank")} />
+        <ShareBtn icon={<Share2 className="h-4 w-4" />} label="FB" onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank")} />
+        <ShareBtn icon={<Share2 className="h-4 w-4" />} label="X" onClick={() => window.open(`https://twitter.com/intent/tweet?url=${url}`, "_blank")} />
+        <ShareBtn icon={<Share2 className="h-4 w-4" />} label="In" onClick={() => window.open(`https://www.linkedin.com/sharing/share-site/?url=${url}`, "_blank")} />
       </div>
     </div>
   );
@@ -830,7 +830,7 @@ function ShareBtn({ icon, label, onClick, active }: { icon: React.ReactNode; lab
   );
 }
 
-// ─── Utilities ───
+// â”€â”€â”€ Utilities â”€â”€â”€
 
 function formatCount(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;

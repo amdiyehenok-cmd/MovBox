@@ -68,9 +68,9 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
 
   return (
     <div className="min-h-screen bg-bg-deepest text-text-primary">
-      {/* ─── HERO ─── */}
+      {/* â”€â”€â”€ HERO â”€â”€â”€ */}
       <section className="relative isolate overflow-hidden">
-        {/* Always render a banner — backdrop or warm gradient. */}
+        {/* Always render a banner â€” backdrop or warm gradient. */}
         <div className="absolute inset-0 -z-10">
           {backdrop ? (
             <img
@@ -92,7 +92,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
         </div>
 
         <div className="mx-auto max-w-7xl px-3 pb-10 pt-16 sm:px-5 md:px-6 md:pt-20">
-          {/* Breadcrumb — hidden on small mobile, visible md+ */}
+          {/* Breadcrumb â€” hidden on small mobile, visible md+ */}
           <nav className="mb-4 hidden items-center gap-1.5 text-sm text-text-secondary md:flex md:mb-6">
             <Link href="/" className="hover:text-cream">Home</Link>
             <ChevronRight className="h-3.5 w-3.5 text-text-muted" />
@@ -102,12 +102,12 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
           </nav>
           {/* Compact mobile breadcrumb */}
           <nav className="mb-3 flex items-center gap-1 text-xs text-text-muted md:hidden">
-            <Link href="/tv" className="hover:text-cream">← TV Shows</Link>
-            <span className="line-clamp-1">· {details.title}</span>
+            <Link href="/tv" className="hover:text-cream">â† TV Shows</Link>
+            <span className="line-clamp-1">Â· {details.title}</span>
           </nav>
 
           <div className="grid grid-cols-[120px_1fr] items-start gap-4 sm:grid-cols-[150px_1fr] sm:gap-5 md:grid-cols-[200px_1fr] md:gap-6 lg:grid-cols-[260px_1fr]">
-            {/* Poster — small thumbnail on mobile, full size on lg */}
+            {/* Poster â€” small thumbnail on mobile, full size on lg */}
             <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg border border-border bg-surface shadow-elevated md:rounded-xl">
               {poster ? (
                 <img
@@ -145,7 +145,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                 {details.title}
               </h1>
 
-              {/* Meta line — TV series badge + meta */}
+              {/* Meta line â€” TV series badge + meta */}
               <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-text-secondary sm:mt-3 sm:gap-x-3 sm:text-sm">
                 <span className="inline-flex items-center gap-1 rounded-md border border-border bg-surface-elevated/60 px-1.5 py-0.5 text-[10px] text-cream sm:px-2 sm:text-xs">
                   <Tv2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> TV Series
@@ -154,7 +154,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                 {details.country && <span className="hidden sm:inline">{details.country}</span>}
                 {details.genres.slice(0, 3).map((g, i) => (
                   <span key={g}>
-                    {i > 0 && <span className="text-text-muted">· </span>}
+                    {i > 0 && <span className="text-text-muted">Â· </span>}
                     {g}
                   </span>
                 ))}
@@ -195,7 +195,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                     Download
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" className="flex-1 sm:flex-none">
+                <Button variant="secondary" size="lg" className="flex-1 sm:flex-none">
                   <Plus className="h-4 w-4" />
                   My List
                 </Button>
@@ -228,7 +228,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
         </div>
       </section>
 
-      {/* ─── TABS ─── */}
+      {/* â”€â”€â”€ TABS â”€â”€â”€ */}
       <nav className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <ul className="flex items-center gap-6 overflow-x-auto text-sm">
@@ -264,7 +264,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
         </div>
       </nav>
 
-      {/* ─── MAIN ─── */}
+      {/* â”€â”€â”€ MAIN â”€â”€â”€ */}
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
           <div className="min-w-0 space-y-6">
@@ -285,7 +285,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                       ...(details.uploadBy
                         ? [[<Building2 key="u-icon" className="h-4 w-4" />, "Studio", details.uploadBy]]
                         : []),
-                      [<Calendar key="rd-icon" className="h-4 w-4" />, "Release", details.releaseDate || "—"],
+                      [<Calendar key="rd-icon" className="h-4 w-4" />, "Release", details.releaseDate || "â€”"],
                       [<Tv2 key="ty-icon" className="h-4 w-4" />, "Type", "TV Series"],
                       ...(details.durationLabel
                         ? [[<Clock key="du-icon" className="h-4 w-4" />, "Runtime", details.durationLabel]]
@@ -293,12 +293,12 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                       ...(details.country
                         ? [[<Globe2 key="co-icon" className="h-4 w-4" />, "Country", details.country]]
                         : []),
-                      [<Tag key="ge-icon" className="h-4 w-4" />, "Genres", details.genres.join(", ") || "—"],
+                      [<Tag key="ge-icon" className="h-4 w-4" />, "Genres", details.genres.join(", ") || "â€”"],
                     ]}
                   />
                 </Panel>
 
-                {/* Trailer — embedded HTML5 player using the boxmovies trailer URL.
+                {/* Trailer â€” embedded HTML5 player using the boxmovies trailer URL.
                     Falls back to a clickable thumbnail that opens the player
                     if boxmovies didn't provide a trailer. */}
                 <Panel title="Watch Trailer">
@@ -352,7 +352,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                     <div>
                       <div className="flex items-end gap-1.5">
                         <span className="font-display text-5xl font-bold text-cream">
-                          {details.rating != null ? details.rating.toFixed(1) : "—"}
+                          {details.rating != null ? details.rating.toFixed(1) : "â€”"}
                         </span>
                         <span className="mb-1.5 text-base text-text-muted">/10</span>
                       </div>
@@ -406,7 +406,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                   )}
                 </Panel>
 
-                {/* More Like This — replaces the old fake "Episodes" row */}
+                {/* More Like This â€” replaces the old fake "Episodes" row */}
                 {related.length > 0 && (
                   <Panel title="More Like This" flush>
                     <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2">
@@ -477,7 +477,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                   <textarea
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
-                    placeholder="Share your thoughts on this show…"
+                    placeholder="Share your thoughts on this showâ€¦"
                     className="w-full resize-none bg-transparent text-sm text-cream placeholder:text-text-muted focus:outline-none"
                     rows={3}
                   />
@@ -505,13 +505,13 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                     {related.map((m) => <MovieCard key={m.detailPath} media={toMediaCard(m)} />)}
                   </div>
                 ) : (
-                  <p className="p-5 text-sm text-text-muted">No recommendations yet — check out what's trending on the home page!</p>
+                  <p className="p-5 text-sm text-text-muted">No recommendations yet â€” check out what's trending on the home page!</p>
                 )}
               </Panel>
             )}
           </div>
 
-          {/* ─── RIGHT ─── */}
+          {/* â”€â”€â”€ RIGHT â”€â”€â”€ */}
           <aside className="space-y-6">
             {actors.length > 0 && (
               <div className="rounded-xl border border-border bg-surface/40 p-5">
@@ -543,7 +543,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
               </div>
             )}
 
-            {/* Similar Shows sidebar — replaces the old "Seasons" sidebar */}
+            {/* Similar Shows sidebar â€” replaces the old "Seasons" sidebar */}
             {related.length > 0 && (
               <div className="rounded-xl border border-border bg-surface/40 p-5">
                 <div className="mb-3 flex items-center justify-between">
@@ -575,8 +575,8 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                         <div className="min-w-0 flex-1">
                           <p className="line-clamp-1 text-sm font-medium text-cream">{m.title}</p>
                           <p className="text-xs text-text-muted">
-                            {m.year ?? "—"}
-                            {m.rating ? ` · ${m.rating.toFixed(1)}` : ""}
+                            {m.year ?? "â€”"}
+                            {m.rating ? ` Â· ${m.rating.toFixed(1)}` : ""}
                           </p>
                         </div>
                       </Link>
@@ -608,7 +608,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
   );
 }
 
-// ─── Helpers ───
+// â”€â”€â”€ Helpers â”€â”€â”€
 
 function Panel({ title, action, flush, children }: { title: string; action?: React.ReactNode; flush?: boolean; children: React.ReactNode }) {
   return (
@@ -740,9 +740,9 @@ function ShareMenu({ onClose }: { onClose: () => void }) {
       </div>
       <div className="grid grid-cols-4 gap-1 p-2">
         <ShareBtn icon={<Copy className="h-4 w-4" />} label={copied ? "Copied" : "Copy"} onClick={copy} active={copied} />
-        <ShareBtn icon={<Facebook className="h-4 w-4" />} label="FB" onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank")} />
-        <ShareBtn icon={<Twitter className="h-4 w-4" />} label="X" onClick={() => window.open(`https://twitter.com/intent/tweet?url=${url}`, "_blank")} />
-        <ShareBtn icon={<Linkedin className="h-4 w-4" />} label="In" onClick={() => window.open(`https://www.linkedin.com/sharing/share-site/?url=${url}`, "_blank")} />
+        <ShareBtn icon={<Share2 className="h-4 w-4" />} label="FB" onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, "_blank")} />
+        <ShareBtn icon={<Share2 className="h-4 w-4" />} label="X" onClick={() => window.open(`https://twitter.com/intent/tweet?url=${url}`, "_blank")} />
+        <ShareBtn icon={<Share2 className="h-4 w-4" />} label="In" onClick={() => window.open(`https://www.linkedin.com/sharing/share-site/?url=${url}`, "_blank")} />
       </div>
     </div>
   );

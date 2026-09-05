@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { PageLoader } from "@/components/ui/PageLoader";
+import { Player } from "@/components/player/Player";
 import { WatchSession } from "./WatchSession";
 import { useSources } from "@/lib/useSources";
 import type { BoxSource, BoxCaption, MediaCard } from "@/lib/types";

@@ -17,13 +17,12 @@ const nextConfig: NextConfig = {
   },
   // Strict React 19 — already on
   reactStrictMode: true,
-  // Vercel production builds run `next build` which runs `tsc --noEmit`
-  // first. The repo has pre-existing type errors (TMDB/CinePro legacy
-  // shapes imported in components we don't actually use at runtime,
-  // plus some `string | null` mismatches in detail pages). The dev
-  // server (`next dev`) doesn't enforce them and everything runs fine.
-  // Skip type-check at build time so deploys aren't blocked; the
-  // errors are a separate cleanup pass, not a runtime concern.
+  // Build-time type-check is OFF (for now). The repo still has ~80
+  // pre-existing type errors in legacy TMDB/CinePro code that the
+  // dev server (`next dev`) doesn't enforce. We removed the worst
+  // offenders (MovieDetailContent, TVDetailContent, CastList) but
+  // the rest is a cleanup pass. `npm run typecheck` is wired up so
+  // you can see them locally; re-enable here once that pass lands.
   typescript: {
     ignoreBuildErrors: true,
   },
