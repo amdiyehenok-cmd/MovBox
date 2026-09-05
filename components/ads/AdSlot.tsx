@@ -10,8 +10,9 @@ import {
 } from "@/lib/ads/frequency";
 import { InFeedAd } from "./InFeedAd";
 import { SocialBar } from "./SocialBar";
+import { BannerAd } from "./BannerAd";
 
-type AdSlotName = "feed-card" | "social-bar";
+type AdSlotName = "feed-card" | "social-bar" | "banner";
 
 interface AdSlotProps {
   /** Which slot. */
@@ -67,6 +68,15 @@ export function AdSlot({ name, className }: AdSlotProps) {
         scriptSrc={ADSTERRA.socialBarScript}
         onDismiss={() => dismissSlot("social-bar")}
         className={className}
+      />
+    );
+  }
+  if (name === "banner") {
+    return (
+      <BannerAd
+        href={ADSTERRA.smartlinkUrl}
+        className={className}
+        onDismiss={() => dismissSlot("banner")}
       />
     );
   }

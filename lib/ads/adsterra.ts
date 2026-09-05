@@ -49,13 +49,25 @@ export const ADSTERRA = {
  * soft cap combined with the rest of the page.
  */
 export const AD_FREQUENCY = {
-  // In-feed card: every 9 cards on browse / search / home rows.
-  feedCardEvery: 9,
+  // In-feed card: every 5 cards on browse / search / home rows.
+  // Lowered from 9 -> 5 so users actually see sponsored cards.
+  feedCardEvery: 5,
+  // Static HTML banner: appears once per session (above the cap
+  // window so the banner is shown even if the user has hit the
+  // hard cap on the other slots).
+  bannerMaxPerSession: 1,
   // Social bar: once per session, dismissible for the rest of the
   // session.
   socialBarMaxPerSession: 1,
-  // Hard cap (any combination of slots): 3 impressions per session
+  // Hard cap (any combination of slots): 5 impressions per session
   // before going silent. After this we keep the slot for the user's
   // eyes but never fill it again.
-  hardCapPerSession: 3,
+  hardCapPerSession: 5,
 } as const;
+
+export const AD_SLOT = {
+  feedCard: "feed-card",
+  socialBar: "social-bar",
+  banner: "banner",
+} as const;
+export type AdSlotName = (typeof AD_SLOT)[keyof typeof AD_SLOT];

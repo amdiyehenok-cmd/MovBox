@@ -2,6 +2,7 @@ import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { MovieRow } from "@/components/home/MovieRow";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { FeatureFooter } from "@/components/home/FeatureFooter";
+import { AdSlot } from "@/components/ads/AdSlot";
 import { getBoxmoviesHome } from "@/lib/data";
 import type { MediaCard, BoxMediaCard } from "@/lib/types";
 
@@ -54,7 +55,6 @@ export default async function HomePage() {
   for (const s of home.sections) {
     if (SKIP_SECTION_TITLES.has(s.title)) continue;
     if (!s.items?.length) continue;
-    // Build a content fingerprint to skip sections with the same items
     const fp = s.items
       .slice(0, 6)
       .map((i) => i.detailPath)
@@ -69,30 +69,42 @@ export default async function HomePage() {
     });
   }
 
+  // Inject sponsored banners between rows. After row 1 (under the hero),
+  // after row 4 (mid-page), and after row 7 (deep scroll) — three
+  // placements so the user is exposed regardless of scroll depth. The
+  // AdSlot's frequency cap still limits to 1 banner per session.
+  const BANNER_AFTER = new Set([1, 4, 7]);
+
   return (
     <div className="bg-bg-deepest">
-      {/* Hero carousel â€” boxmovies' first/hero section */}
+      {/* Hero */}
       <HeroCarousel items={hero} />
 
-      {/* Promo banner sits right under the hero */}
+      {/* Promo banner + features just under the hero */}
       <div className="pt-6">
         <PromoBanner />
       </div>
-
-      {/* Compact feature cards â€” quick value props, right under the promo */}
       <div className="pt-3">
         <FeatureFooter />
       </div>
 
-      {/* Every themed section boxmovies shows, minus the duplicate tab rows */}
-      {sections.map((section) => (
-        <section
-          key={section.key}
-          className="mx-auto max-w-7xl px-4 pt-8 md:px-6 md:pt-10 lg:px-8"
-        >
-          <MovieRow title={section.title} items={section.items} />
-        </section>
-      ))}
+      {/* Themed sections + sponsored banners */}
+      {sections.map((section, idx) => {
+        const rowNum = idx + 1;
+        const showBannerAfter = BANNER_AFTER.has(rowNum);
+        return (
+          <div key={section.key}>
+            <section className="mx-auto max-w-7xl px-4 pt-8 md:px-6 md:pt-10 lg:px-8">
+              <MovieRow title={section.title} items={section.items} />
+            </section>
+            {showBannerAfter && (
+              <div className="mx-auto max-w-7xl px-4 pt-6 md:px-6 lg:px-8">
+                <AdSlot name="banner" />
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
