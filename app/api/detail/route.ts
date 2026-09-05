@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBoxmoviesDetail } from "@/lib/boxmovies";
+import { getBoxmoviesDetail } from "@/lib/data";
 
 /**
  * GET /api/detail?detailPath=...

@@ -2,7 +2,7 @@ import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { MovieRow } from "@/components/home/MovieRow";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { FeatureFooter } from "@/components/home/FeatureFooter";
-import { getBoxmoviesHome } from "@/lib/boxmovies";
+import { getBoxmoviesHome } from "@/lib/data";
 import type { MediaCard, BoxMediaCard } from "@/lib/types";
 
 export const revalidate = 1800; // 30 min
@@ -71,7 +71,7 @@ export default async function HomePage() {
 
   return (
     <div className="bg-bg-deepest">
-      {/* Hero carousel — boxmovies' first/hero section */}
+      {/* Hero carousel â€” boxmovies' first/hero section */}
       <HeroCarousel items={hero} />
 
       {/* Promo banner sits right under the hero */}
@@ -79,7 +79,7 @@ export default async function HomePage() {
         <PromoBanner />
       </div>
 
-      {/* Compact feature cards — quick value props, right under the promo */}
+      {/* Compact feature cards â€” quick value props, right under the promo */}
       <div className="pt-3">
         <FeatureFooter />
       </div>

@@ -3,13 +3,13 @@ import { Sparkles } from "lucide-react";
 import {
   getBoxmoviesBrowse,
   getBoxmoviesFilterOptions,
-} from "@/lib/boxmovies";
+} from "@/lib/data";
 import { BrowseClient } from "@/components/browse/BrowseClient";
 
 export const revalidate = 600;
 
 export const metadata: Metadata = {
-  title: "Animations — Movbox",
+  title: "Animations â€” Movbox",
   description:
     "Anime, cartoons, and animated movies & series. Powered by boxmovies.org.",
 };
@@ -18,7 +18,7 @@ export default async function AnimationsPage() {
   // Real anime from boxmovies's /animated-series h5-api. The /browse
   // endpoint with channelId=7 maps internally to upstream channelId=1006
   // (the "Anime" channel on boxmovies), so this returns the full vast
-  // anime catalog — not the small "Anime" section from the home JSON.
+  // anime catalog â€” not the small "Anime" section from the home JSON.
   const [browse, options] = await Promise.all([
     getBoxmoviesBrowse(7, { sort: "Hottest", perPage: 28 }).catch(() => ({
       items: [],
@@ -49,7 +49,7 @@ export default async function AnimationsPage() {
               Animations
             </h1>
             <p className="mt-0.5 text-xs text-text-secondary sm:mt-1 sm:text-sm md:text-base">
-              Anime, cartoons & animated films — infinite scroll.
+              Anime, cartoons & animated films â€” infinite scroll.
             </p>
           </div>
         </header>

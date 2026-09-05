@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import {
   getBoxmoviesBrowse,
   getBoxmoviesFilterOptions,
-} from "@/lib/boxmovies";
+} from "@/lib/data";
 import { BrowseClient } from "@/components/browse/BrowseClient";
 
-export const revalidate = 300; // 5 min — filter pages re-fetch on change anyway
+export const revalidate = 300; // 5 min â€” filter pages re-fetch on change anyway
 
 export const metadata: Metadata = {
-  title: "Movies — Movbox",
+  title: "Movies â€” Movbox",
   description:
     "Browse movies by genre, country, year and language. Powered by boxmovies.org.",
 };
@@ -44,7 +44,7 @@ export default async function MoviesPage() {
             Movies
           </h1>
           <p className="mt-1 text-xs text-text-secondary sm:text-sm md:text-base">
-            Hollywood, Nollywood, Bollywood, K-Drama & more — updated daily.
+            Hollywood, Nollywood, Bollywood, K-Drama & more â€” updated daily.
           </p>
         </header>
       </div>

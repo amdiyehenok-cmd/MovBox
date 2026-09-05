@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Flame } from "lucide-react";
 import { MediaGrid } from "@/components/media/MediaGrid";
-import { getBoxmoviesHome } from "@/lib/boxmovies";
+import { getBoxmoviesHome } from "@/lib/data";
 import type { MediaCard } from "@/lib/types";
 
 export const revalidate = 1800;
 
 export const metadata: Metadata = {
-  title: "Most Watched — Movbox",
+  title: "Most Watched â€” Movbox",
   description: "The most-watched titles on Movbox right now.",
 };
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchBoxmovies } from "@/lib/boxmovies";
+import { searchBoxmovies } from "@/lib/data";
 
 /**
  * GET /api/search?q=...&page=1&subjectType=0
@@ -7,7 +7,7 @@ import { searchBoxmovies } from "@/lib/boxmovies";
  * Full search across the boxmovies catalog. Drives the real
  * h5-api.aoneroom.com /wefeed-h5api-bff/subject/search endpoint (the
  * same one boxmovies's own /searchResult page uses), so the results
- * cover the entire boxmovies catalog — not just whatever the SPA DOM
+ * cover the entire boxmovies catalog â€” not just whatever the SPA DOM
  * happened to expose.
  *
  * `subjectType`:
@@ -19,7 +19,7 @@ import { searchBoxmovies } from "@/lib/boxmovies";
  * Response shape mirrors boxmovies's pager: { results, totalCount,
  * hasMore, nextPage, page, perPage, subjectType }.
  *
- * Cached at the edge for 60s — same query + page + filter reused
+ * Cached at the edge for 60s â€” same query + page + filter reused
  * across users for the lifetime of the cache.
  */
 

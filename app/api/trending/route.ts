@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBoxmoviesTrending } from "@/lib/boxmovies";
+import { getBoxmoviesTrending } from "@/lib/data";
 
 /**
  * GET /api/trending?perPage=18

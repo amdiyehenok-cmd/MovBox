@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * FilterSidebar — vertical column of <FilterChips> sections for the
+ * FilterSidebar â€” vertical column of <FilterChips> sections for the
  * browse pages. Matches the boxmovies.org sidebar pattern: each axis
  * (Genre / Country / Language / Year / Sort) is a small collapsible
  * section with a chip cloud.
@@ -14,7 +14,7 @@
 import { useState } from "react";
 import { Filter as FilterIcon, X } from "lucide-react";
 import { FilterChips } from "./FilterChips";
-import type { FilterOptions } from "@/lib/boxmovies";
+import type { FilterOptions } from "@/lib/data";
 
 export interface FilterState {
   genre: string | null;

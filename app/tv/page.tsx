@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import {
   getBoxmoviesBrowse,
   getBoxmoviesFilterOptions,
-} from "@/lib/boxmovies";
+} from "@/lib/data";
 import { BrowseClient } from "@/components/browse/BrowseClient";
 
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "TV Shows — Movbox",
+  title: "TV Shows â€” Movbox",
   description:
     "Browse TV series by genre, country, year and language. Powered by boxmovies.org.",
 };
@@ -42,7 +42,7 @@ export default async function TVPage() {
             TV Shows
           </h1>
           <p className="mt-1 text-xs text-text-secondary sm:text-sm md:text-base">
-            K-Drama, anime, sitcoms, reality TV & more — updated daily.
+            K-Drama, anime, sitcoms, reality TV & more â€” updated daily.
           </p>
         </header>
       </div>

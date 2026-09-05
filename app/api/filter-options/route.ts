@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBoxmoviesFilterOptions, type ChannelId } from "@/lib/boxmovies";
+import { getBoxmoviesFilterOptions, type ChannelId } from "@/lib/data";
 
 /**
  * GET /api/filter-options?channelId=1|2|7
@@ -8,7 +8,7 @@ import { getBoxmoviesFilterOptions, type ChannelId } from "@/lib/boxmovies";
  * (genre / country / year / language / sort). Frontend uses this to
  * render the filter sidebar on /movies, /tv, /animations.
  *
- * Cached aggressively — these values rarely change.
+ * Cached aggressively â€” these values rarely change.
  */
 
 export const dynamic = "force-dynamic";

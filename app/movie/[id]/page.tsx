@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/boxmovies";
+import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/data";
 import { MovieDetailView } from "@/components/detail/MovieDetailView";
-import { SITE_NAME } from "@/lib/constants";
+import { SITE_NAME, SITE_URL } from "@/lib/constants";
+import { MovieJsonLd } from "@/components/seo/MovieJsonLd";
 
 export const revalidate = 3600;
 
@@ -20,6 +21,16 @@ export async function generateMetadata({
   return {
     title: details.title,
     description: details.synopsis || `Watch ${details.title} on ${SITE_NAME}.`,
+    openGraph: {
+      title: details.title,
+      description: details.synopsis || `Watch ${details.title} on ${SITE_NAME}.`,
+      url: `${SITE_URL}/movie/${encodeURIComponent(id)}`,
+      siteName: SITE_NAME,
+      type: "video.movie",
+      images: details.backdropUrl
+        ? [{ url: details.backdropUrl, width: 1280, height: 720, alt: details.title }]
+        : undefined,
+    },
   };
 }
 
@@ -36,5 +47,10 @@ export default async function MovieDetailPage({ params }: MovieDetailPageProps) 
   // Curated "More Like This" — movie-biased, 12 items.
   const related = await getBoxmoviesRelated(details.detailPath, "movie", 12).catch(() => []);
 
-  return <MovieDetailView details={details} related={related} />;
+  return (
+    <>
+      <MovieJsonLd details={details} />
+      <MovieDetailView details={details} related={related} />
+    </>
+  );
 }

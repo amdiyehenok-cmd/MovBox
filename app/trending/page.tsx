@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { Flame } from "lucide-react";
 import { TrendingRow } from "@/components/home/TrendingRow";
-import { getBoxmoviesTrending } from "@/lib/boxmovies";
+import { getBoxmoviesTrending } from "@/lib/data";
 import type { MediaCard } from "@/lib/types";
 
 export const revalidate = 1800; // 30 min
 
 export const metadata: Metadata = {
-  title: "Trending — Movbox",
+  title: "Trending â€” Movbox",
   description: "What's hot on Movbox right now.",
 };
 

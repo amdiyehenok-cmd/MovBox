@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * BrowseClient — shared client component for /movies, /tv, /animations.
+ * BrowseClient â€” shared client component for /movies, /tv, /animations.
  * Owns the filter state, calls /api/browse on every change, and renders
  * the <FilterSidebar> + <BrowseGrid> combo in a 2-col grid on desktop.
  * On mobile, the filter sidebar collapses behind a button (handled
@@ -11,7 +11,7 @@
 import { useCallback, useState } from "react";
 import { FilterSidebar, EMPTY_FILTERS, type FilterState } from "./FilterSidebar";
 import { BrowseGrid } from "./BrowseGrid";
-import type { BoxMediaCard, FilterOptions } from "@/lib/boxmovies";
+import type { BoxMediaCard, FilterOptions } from "@/lib/data";
 
 export interface BrowseClientProps {
   channelId: 1 | 2 | 7;

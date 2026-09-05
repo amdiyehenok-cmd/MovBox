@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBoxmoviesStream } from "@/lib/boxmovies";
+import { getBoxmoviesStream } from "@/lib/data";
 import type { BoxSource, BoxSourceGroup } from "@/lib/types";
 
 /**
@@ -9,9 +9,9 @@ import type { BoxSource, BoxSourceGroup } from "@/lib/types";
  * Everything goes through the thin relay (the same relay the Android
  * app uses):
  *
- *   - source list + captions  →  thin relay /stream
- *   - MP4 bytes               →  thin relay /mp4?url=...
- *   - subtitle bytes          →  thin relay /subtitle?url=...
+ *   - source list + captions  â†’  thin relay /stream
+ *   - MP4 bytes               â†’  thin relay /mp4?url=...
+ *   - subtitle bytes          â†’  thin relay /subtitle?url=...
  *
  * The relay injects the upstream Bearer auth and the right Referer/
  * Origin headers so the browser can play videos and render subtitles
@@ -66,11 +66,11 @@ export async function GET(req: NextRequest) {
     // relay returns the SRT bytes with `application/x-subrip` MIME
     // type, but the browser's <track> element only recognizes
     // `text/vtt` (WebVTT). This Next.js route fetches the bytes from
-    // the thin relay and converts SRT→VTT on the way out, so every
+    // the thin relay and converts SRTâ†’VTT on the way out, so every
     // browser renders the cues.
     const toPlayerSubtitleUrl = (upstreamOrRelayUrl: string) => {
       if (!upstreamOrRelayUrl) return upstreamOrRelayUrl;
-      // Already a Next.js proxy URL — leave it.
+      // Already a Next.js proxy URL â€” leave it.
       if (upstreamOrRelayUrl.startsWith("/api/subtitle-proxy")) {
         return upstreamOrRelayUrl;
       }
@@ -135,7 +135,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(payload, {
       headers: {
         // Boxmovies stream URLs are proxied through the thin relay and
-        // that proxy is essentially a passthrough — short cache.
+        // that proxy is essentially a passthrough â€” short cache.
         "Cache-Control": "public, max-age=60, s-maxage=120",
       },
     });

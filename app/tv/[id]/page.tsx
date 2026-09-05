@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/boxmovies";
+import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/data";
 import { TVDetailView } from "@/components/detail/TVDetailView";
-import { SITE_NAME } from "@/lib/constants";
+import { TVShowJsonLd } from "@/components/seo/MovieJsonLd";
+import { SITE_NAME, SITE_URL } from "@/lib/constants";
 
 export const revalidate = 3600;
 
@@ -19,6 +20,16 @@ export async function generateMetadata({
   return {
     title: details.title,
     description: details.synopsis || `Watch ${details.title} on ${SITE_NAME}.`,
+    openGraph: {
+      title: details.title,
+      description: details.synopsis || `Watch ${details.title} on ${SITE_NAME}.`,
+      url: `${SITE_URL}/tv/${encodeURIComponent(id)}`,
+      siteName: SITE_NAME,
+      type: "video.tv_show",
+      images: details.backdropUrl
+        ? [{ url: details.backdropUrl, width: 1280, height: 720, alt: details.title }]
+        : undefined,
+    },
   };
 }
 
@@ -35,5 +46,10 @@ export default async function TVDetailPage({ params }: TVDetailPageProps) {
   // Curated "More Like This" — TV-biased, 12 items, no dupes, current excluded.
   const related = await getBoxmoviesRelated(details.detailPath, "tv", 12).catch(() => []);
 
-  return <TVDetailView details={details} related={related} />;
+  return (
+    <>
+      <TVShowJsonLd details={details} />
+      <TVDetailView details={details} related={related} />
+    </>
+  );
 }

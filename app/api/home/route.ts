@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getBoxmoviesHome } from "@/lib/boxmovies";
+import { getBoxmoviesHome } from "@/lib/data";
 
 /**
  * GET /api/home
