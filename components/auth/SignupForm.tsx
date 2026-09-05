@@ -4,11 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Mail, Lock, User, Eye, EyeOff, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import {
-  GoogleIcon,
-  AppleIcon,
-  FacebookIcon,
-} from "@/components/auth/SocialIcons";
+import { GoogleIcon } from "@/components/auth/SocialIcons";
 import { createBrowserSupabase } from "@/lib/auth/client";
 
 export function SignupForm() {
@@ -73,7 +69,10 @@ export function SignupForm() {
       });
       if (oauthError) throw oauthError;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Google sign-in failed");
+      setError(
+        (e instanceof Error ? e.message : "Google sign-in failed") +
+        " — make sure the Google provider is enabled in your Supabase dashboard."
+      );
       setGoogleLoading(false);
     }
   }
@@ -118,26 +117,10 @@ export function SignupForm() {
         )}
         Continue with Google
       </Button>
-      <Button
-        type="button"
-        variant="secondary"
-        className="w-full"
-        onClick={() => alert("Apple sign-in — enable in Supabase dashboard first.")}
-      >
-        <AppleIcon /> Continue with Apple
-      </Button>
-      <Button
-        type="button"
-        variant="secondary"
-        className="w-full"
-        onClick={() => alert("Facebook sign-in — enable in Supabase dashboard first.")}
-      >
-        <FacebookIcon /> Continue with Facebook
-      </Button>
 
       <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wider text-text-muted">
         <div className="h-px flex-1 bg-border" />
-        <span>or</span>
+        <span>or sign up with email</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 

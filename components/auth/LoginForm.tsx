@@ -5,11 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import {
-  GoogleIcon,
-  AppleIcon,
-  FacebookIcon,
-} from "@/components/auth/SocialIcons";
+import { GoogleIcon } from "@/components/auth/SocialIcons";
 import { createBrowserSupabase } from "@/lib/auth/client";
 
 export function LoginForm() {
@@ -21,7 +17,9 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(
-    errorParam ? "Google sign-in failed. Please try again or use email." : null
+    errorParam
+      ? decodeURIComponent(errorParam)
+      : null
   );
 
   async function handleEmailLogin(e: React.FormEvent) {
@@ -58,14 +56,19 @@ export function LoginForm() {
       });
       if (oauthError) throw oauthError;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Google sign-in failed");
+      setError(
+        (e instanceof Error ? e.message : "Google sign-in failed") +
+        " — make sure the Google provider is enabled in your Supabase dashboard."
+      );
       setGoogleLoading(false);
     }
   }
 
   return (
     <>
-      {/* Google — the primary OAuth path we have wired */}
+      {/* Google — the primary OAuth path we have wired. Apple/Facebook
+          were removed because they were no-op placeholders and users
+          were clicking them by mistake. */}
       <Button
         type="button"
         variant="secondary"
@@ -81,29 +84,9 @@ export function LoginForm() {
         Continue with Google
       </Button>
 
-      {/* Apple + Facebook buttons kept visually so the UI matches the
-          design, but they're no-ops until those providers are added
-          to the Supabase project's auth settings. */}
-      <Button
-        type="button"
-        variant="secondary"
-        className="w-full"
-        onClick={() => alert("Apple sign-in — set this up in Supabase dashboard first.")}
-      >
-        <AppleIcon /> Continue with Apple
-      </Button>
-      <Button
-        type="button"
-        variant="secondary"
-        className="w-full"
-        onClick={() => alert("Facebook sign-in — set this up in Supabase dashboard first.")}
-      >
-        <FacebookIcon /> Continue with Facebook
-      </Button>
-
       <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wider text-text-muted">
         <div className="h-px flex-1 bg-border" />
-        <span>or</span>
+        <span>or sign in with email</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 

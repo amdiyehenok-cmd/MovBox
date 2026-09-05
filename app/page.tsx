@@ -3,6 +3,8 @@ import { MovieRow } from "@/components/home/MovieRow";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { FeatureFooter } from "@/components/home/FeatureFooter";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { BannerAd } from "@/components/ads/BannerAd";
+import { ADSTERRA } from "@/lib/ads/adsterra";
 import { getBoxmoviesHome } from "@/lib/data";
 import type { MediaCard, BoxMediaCard } from "@/lib/types";
 
@@ -79,6 +81,19 @@ export default async function HomePage() {
     <div className="bg-bg-deepest">
       {/* Hero */}
       <HeroCarousel items={hero} />
+
+      {/* Top-of-page sponsored banner — renders server-side, no hydration
+          needed. This is the first thing the user sees after the hero so
+          they can't miss it. Capped client-side via the AdSlot helper
+          if/when we add one. */}
+      <div className="mx-auto max-w-7xl px-4 pt-6 md:px-6 md:pt-8 lg:px-8">
+        <BannerAd
+          href={ADSTERRA.smartlinkUrl}
+          title="Sponsored — Today's Pick"
+          subtitle="Hand-picked for Movbox viewers · Tap to see offer"
+          cta="See offer"
+        />
+      </div>
 
       {/* Promo banner + features just under the hero */}
       <div className="pt-6">
