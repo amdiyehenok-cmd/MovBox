@@ -11,24 +11,43 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-  const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user: {
+    id: string;
+    email?: string | null;
+    user_metadata?: Record<string, unknown> | null;
+    created_at: string;
+  } | null = null;
+  try {
+    const supabase = await createServerSupabase();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch (err) {
+    // If Supabase is misconfigured (missing env, project paused, etc.)
+    // we don't want the whole page to crash with a 500. Treat it as
+    // an unauthenticated state and bounce to /login.
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[profile] Supabase getUser() failed:", err);
+    }
+  }
+
   if (!user) {
-    // Not signed in → bounce to /login?next=/profile
+    // Not signed in (or Supabase unavailable) → bounce to /login?next=/profile
     redirect("/login?next=/profile");
   }
+
+  const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
+  const email = user.email ?? "";
+
   return (
     <ProfileClient
       user={{
         id: user.id,
-        email: user.email ?? "",
+        email,
         name:
-          (user.user_metadata?.full_name as string | undefined) ??
-          user.email?.split("@")[0] ??
+          (typeof meta.full_name === "string" ? meta.full_name : null) ??
+          email.split("@")[0] ??
           "Movbox user",
-        avatarUrl: (user.user_metadata?.avatar_url as string | undefined) ?? null,
+        avatarUrl: typeof meta.avatar_url === "string" ? meta.avatar_url : null,
         createdAt: user.created_at,
       }}
     />
