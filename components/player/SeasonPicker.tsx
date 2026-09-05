@@ -104,7 +104,7 @@ export function SeasonPicker({
                   {backdropUrl || posterUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={imageUrl(backdropUrl || posterUrl || "")}
+                      src={imageUrl(backdropUrl || posterUrl || "") ?? undefined}
                       alt=""
                       className="absolute inset-0 h-full w-full object-cover opacity-60"
                       loading="lazy"

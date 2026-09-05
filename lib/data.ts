@@ -715,7 +715,6 @@ export async function getBoxmoviesDetail(
         : null,
       durationSeconds,
       durationLabel,
-      duration: subj.duration,
       genres,
       availableSubtitleLanguages,
       country: subj.countryName || null,

@@ -8,6 +8,7 @@ import {
   Download,
   Play,
   Plus,
+  Share2,
   Star,
   X,
   Copy,
@@ -74,7 +75,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
         <div className="absolute inset-0 -z-10">
           {backdrop ? (
             <img
-              src={imageUrl(backdrop)}
+              src={imageUrl(backdrop) ?? undefined}
               alt=""
               className="h-full w-full object-cover"
             />
@@ -111,7 +112,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
             <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg border border-border bg-surface shadow-elevated md:rounded-xl">
               {poster ? (
                 <img
-                  src={imageUrl(poster)}
+                  src={imageUrl(poster) ?? undefined}
                   alt={details.title}
                   className="absolute inset-0 h-full w-full object-cover"
                 />
@@ -277,7 +278,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                         ? [[<Tv2 key="d-icon" className="h-4 w-4" />, "Creator", directors.map((d) => d.name).join(", ")]]
                         : []),
                       ...(writers.length > 0
-                        ? [[<Pencil key="w-icon" className="h-4 w-4" />, "Writers", writers.map((w) => w.name).join(", ")]]
+                        ? [[<Pencil key="w-icon" className="h-4 w-4" />, "Writers", writers.map((w) => w.name).join(", ")] as [React.ReactNode, string, string]]
                         : []),
                       ...(details.source
                         ? [[<Tv2 key="s-icon" className="h-4 w-4" />, "Network", details.source]]
@@ -320,7 +321,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                       aria-label="Watch now"
                     >
                       <img
-                        src={imageUrl(backdrop || poster || "")}
+                        src={imageUrl(backdrop || poster || "") ?? undefined}
                         alt="Watch trailer"
                         className="absolute inset-0 h-full w-full object-cover opacity-70 transition-opacity group-hover:opacity-50"
                       />
@@ -566,7 +567,7 @@ export function TVDetailView({ details, related = [] }: TVDetailViewProps) {
                         <div className="relative h-14 w-10 shrink-0 overflow-hidden rounded border border-border bg-surface-elevated">
                           {m.posterUrl && (
                             <img
-                              src={imageUrl(m.posterUrl)}
+                              src={imageUrl(m.posterUrl) ?? undefined}
                               alt={m.title}
                               className="absolute inset-0 h-full w-full object-cover"
                             />
@@ -631,7 +632,7 @@ function Chip({ icon, children }: { icon?: React.ReactNode; children: React.Reac
   );
 }
 
-function DetailGrid({ rows }: { rows: Array<[React.ReactNode, string, string]> }) {
+function DetailGrid({ rows }: { rows: any[] }) {
   return (
     <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
       {rows.map(([icon, label, value], i) => (
@@ -653,7 +654,7 @@ function Avatar({ src, name, size = "md" }: { src: string | null; name: string; 
   return (
     <div className={cn("relative shrink-0 overflow-hidden rounded-full border border-border bg-surface-elevated", dim)}>
       {src ? (
-        <img src={imageUrl(src)} alt={name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+        <img src={imageUrl(src) ?? undefined} alt={name} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent to-accent-bright font-display font-bold text-cream">
           <span className={initialSize}>{name.split(/\s+/).map((p) => p[0]).slice(0, 2).join("")}</span>

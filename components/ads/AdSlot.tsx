@@ -41,8 +41,8 @@ export function AdSlot({ name, className }: AdSlotProps) {
 
   useEffect(() => {
     setHydrated(true);
-    setVisible(shouldShowAd(name));
-    if (shouldShowAd(name)) {
+    setVisible(shouldShowAd(name as any));
+    if (shouldShowAd(name as any)) {
       recordImpression(name);
       // best-effort server log
       fetch("/api/ads/impression", {

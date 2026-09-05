@@ -12,13 +12,13 @@ import type {
 /** Convert a TMDB movie -> our unified MediaCard */
 export function toMovieCard(m: TMDBMovie): MediaCard {
   return {
-    id: m.id,
+    id: String(m.id),
     type: "movie",
-    title: m.title,
-    year: m.release_date ?? "",
-    rating: m.vote_average,
-    posterPath: m.poster_path,
-    backdropPath: m.backdrop_path,
+    title: m.title ?? "",
+    year: (m.release_date ?? "").slice(0, 4),
+    rating: m.vote_average ?? 0,
+    posterPath: m.poster_path ?? null,
+    backdropPath: m.backdrop_path ?? null,
     overview: m.overview ?? "",
     runtime: m.runtime ?? null,
   };
@@ -27,13 +27,13 @@ export function toMovieCard(m: TMDBMovie): MediaCard {
 /** Convert a TMDB TV show -> our unified MediaCard */
 export function toTVCard(t: TMDBTVShow): MediaCard {
   return {
-    id: t.id,
+    id: String(t.id),
     type: "tv",
-    title: t.name,
-    year: t.first_air_date ?? "",
-    rating: t.vote_average,
-    posterPath: t.poster_path,
-    backdropPath: t.backdrop_path,
+    title: t.name ?? "",
+    year: (t.first_air_date ?? "").slice(0, 4),
+    rating: t.vote_average ?? 0,
+    posterPath: t.poster_path ?? null,
+    backdropPath: t.backdrop_path ?? null,
     overview: t.overview ?? "",
   };
 }

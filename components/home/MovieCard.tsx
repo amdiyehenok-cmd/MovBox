@@ -45,7 +45,7 @@ export function MovieCard({
       <div className="relative aspect-[2/3] overflow-hidden rounded-md border border-border bg-surface shadow-card transition-all duration-300 group-hover:scale-[1.025] group-hover:border-accent group-hover:shadow-glow">
         {poster ? (
           <Image
-            src={poster}
+            src={poster ?? undefined}
             alt={media.title}
             fill
             priority={priority}

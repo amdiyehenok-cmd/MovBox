@@ -360,7 +360,7 @@ function SearchResultCard({ card }: { card: BoxMediaCard }) {
           {card.posterUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={card.posterUrl}
+              src={card.posterUrl ?? undefined}
               alt={card.title}
               loading="lazy"
               referrerPolicy="no-referrer"

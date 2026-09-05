@@ -167,6 +167,15 @@ export interface MediaCard {
   runtime?: number | null;
 }
 
+/** Available filter axes for /movies, /tv, /animations browse pages. */
+export interface FilterOptions {
+  genre: string[];
+  country: string[];
+  year: string[];
+  language: string[];
+  sort: string[];
+}
+
 // =========================================================================
 // TMDB stubs — legacy shapes kept for type-safety on unused imports.
 // The Movbox web app does NOT use TMDB; these are only there so the

@@ -123,7 +123,7 @@ export function SourceList({
             activeSourceIndex={activeSourceIndex}
             onSelect={onSelect}
             thumbnail={thumbnail}
-            mediaType={mediaType}
+            mediaType={mediaType ?? "movie"}
           />
         ) : tab === "seasons" && isTv ? (
           <SeasonPicker
@@ -170,7 +170,7 @@ function PlaylistTab({
             isActive={i === activeSourceIndex}
             onSelect={onSelect}
             thumbnail={thumbnail}
-            mediaType={mediaType}
+            mediaType={mediaType ?? "movie"}
           />
         </li>
       ))}

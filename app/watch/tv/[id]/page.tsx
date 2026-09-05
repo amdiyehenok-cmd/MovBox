@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { WatchSession } from "@/components/watch/WatchSession";
 import { useSources } from "@/lib/useSources";
 import { useTVWatch } from "@/lib/watch-context";
+import type { BoxSource, BoxCaption } from "@/lib/types";
 import type { SeasonInfo } from "@/components/player/SeasonPicker";
 import { cn } from "@/lib/utils";
 

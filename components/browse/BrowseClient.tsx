@@ -11,7 +11,7 @@
 import { useCallback, useState } from "react";
 import { FilterSidebar, EMPTY_FILTERS, type FilterState } from "./FilterSidebar";
 import { BrowseGrid } from "./BrowseGrid";
-import type { BoxMediaCard, FilterOptions } from "@/lib/data";
+import type { BoxMediaCard, FilterOptions } from "@/lib/types";
 
 export interface BrowseClientProps {
   channelId: 1 | 2 | 7;
