@@ -21,9 +21,9 @@ export function Logo({
   variant?: "wordmark" | "icon";
 }) {
   const heights = {
-    sm: 22,
-    md: 30,
-    lg: 44,
+    sm: 30,
+    md: 42,
+    lg: 56,
   } as const;
 
   return (
