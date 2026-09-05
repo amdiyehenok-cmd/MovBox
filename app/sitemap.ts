@@ -8,11 +8,13 @@ import { getBoxmoviesHome, getBoxmoviesTrending } from "@/lib/data";
  * what gets Movbox into Google for every long-tail "watch {title}
  * online" query — each detail page is a unique ranking opportunity.
  *
- * Runs on the server at request time. Next.js will cache the result
- * for the static-generation window so we don't hammer h5-api on
- * every rebuild.
+ * Runs on the server at request time. Next.js caches the result for
+ * the static-generation window so we don't hammer h5-api on every
+ * rebuild.
  */
 export const revalidate = 3600; // 1h
+export const dynamic = "force-static"; // pre-render at build time
+export const fetchCache = "force-cache"; // don't refetch per-request
 
 interface SitemapItem {
   detailPath: string;
