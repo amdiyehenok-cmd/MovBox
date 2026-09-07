@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import type { BoxSource, BoxCaption } from "@/lib/types";
 import { PrerollAd } from "@/components/ads/PrerollAd";
-import { recordProgress } from "@/lib/history";
+import { recordUserProgress } from "@/lib/user-data";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -833,7 +833,7 @@ export function Player({
 
   function writeHistoryNow(t: number) {
     if (!detailPath) return;
-    recordProgress({
+    recordUserProgress({
       detailPath,
       type: type ?? "movie",
       title,

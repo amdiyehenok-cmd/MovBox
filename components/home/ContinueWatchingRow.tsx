@@ -7,10 +7,13 @@ import { Play, X } from "lucide-react";
 import {
   buildWatchUrl,
   formatResumeTime,
-  getHistory,
-  removeFromHistory,
   type WatchHistoryItem,
 } from "@/lib/history";
+import {
+  getUserHistory,
+  removeUserHistoryItem,
+  migrateLocalHistoryToSupabase,
+} from "@/lib/user-data";
 
 /**
  * Continue Watching row. Mounts client-side, reads watch history
@@ -27,18 +30,32 @@ export function ContinueWatchingRow() {
   useEffect(() => {
     // Initial load. Empty until the effect runs (avoids SSR/CSR
     // mismatch since localStorage is browser-only).
-    setItems(getHistory());
     setReady(true);
+    let cancelled = false;
 
-    function refresh() {
-      setItems(getHistory());
+    async function refresh() {
+      const list = await getUserHistory();
+      if (cancelled) return;
+      setItems(list);
+      // One-time migration: if the user just signed in, push their
+      // localStorage history to supabase.
+      migrateLocalHistoryToSupabase().then((r) => {
+        if (r.pushed > 0) {
+          console.log(`[history] migrated ${r.pushed} items to supabase`);
+        }
+      });
     }
-    window.addEventListener("movbox:history:updated", refresh);
+    refresh();
+    // Re-render on local changes within the same tab (when the
+    // Player writes a new progress point).
+    const onLocal = () => refresh();
+    window.addEventListener("movbox:history:updated", onLocal);
     // Also refresh on storage events from other tabs.
-    window.addEventListener("storage", refresh);
+    window.addEventListener("storage", onLocal);
     return () => {
-      window.removeEventListener("movbox:history:updated", refresh);
-      window.removeEventListener("storage", refresh);
+      cancelled = true;
+      window.removeEventListener("movbox:history:updated", onLocal);
+      window.removeEventListener("storage", onLocal);
     };
   }, []);
 
@@ -57,8 +74,8 @@ export function ContinueWatchingRow() {
             key={`${item.detailPath}-${item.season ?? ""}-${item.episode ?? ""}`}
             item={item}
             onRemove={() => {
-              removeFromHistory(item.detailPath, item.season, item.episode);
-              setItems(getHistory());
+              removeUserHistoryItem(item.detailPath, item.season, item.episode);
+              getUserHistory().then(setItems);
             }}
           />
         ))}

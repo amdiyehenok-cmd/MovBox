@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { MediaGrid } from "@/components/media/MediaGrid";
 import {
-  getWatchlist,
-  clearWatchlist,
-  removeFromWatchlist,
+  getUserWatchlist,
+  clearUserWatchlist,
+  removeUserWatchlist,
+  migrateLocalWatchlistToSupabase,
   type WatchlistEntry,
-} from "@/lib/watchlist";
+} from "@/lib/user-data";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "movie" | "tv";
@@ -29,11 +30,25 @@ export function WatchlistClient() {
 
   useEffect(() => {
     setMounted(true);
-    setItems(getWatchlist());
-    const handler = () => setItems(getWatchlist());
+    let cancelled = false;
+    async function load() {
+      const list = await getUserWatchlist();
+      if (cancelled) return;
+      setItems(list);
+      // One-time migration: if the user just signed in, push their
+      // localStorage watchlist to supabase.
+      migrateLocalWatchlistToSupabase().then((r) => {
+        if (r.pushed > 0) console.log(`[watchlist] migrated ${r.pushed} items to supabase`);
+      });
+    }
+    load();
+    // Also listen to localStorage events for instant updates within
+    // the same tab (e.g. when the user adds an item from the player).
+    const handler = () => load();
     window.addEventListener("movbox:watchlist-change", handler);
-    window.addEventListener("hmovies:watchlist-change", handler); // legacy
+    window.addEventListener("hmovies:watchlist-change", handler);
     return () => {
+      cancelled = true;
       window.removeEventListener("movbox:watchlist-change", handler);
       window.removeEventListener("hmovies:watchlist-change", handler);
     };
@@ -85,7 +100,7 @@ export function WatchlistClient() {
               variant="secondary"
               onClick={() => {
                 if (confirm("Clear your entire watchlist?")) {
-                  clearWatchlist();
+                  clearUserWatchlist();
                   setItems([]);
                 }
               }}
@@ -161,7 +176,7 @@ export function WatchlistClient() {
               <button
                 type="button"
                 onClick={() => {
-                  filtered.forEach((i) => removeFromWatchlist(i.id, i.type));
+                  filtered.forEach((i) => removeUserWatchlist(i));
                 }}
                 className="text-xs text-text-muted underline-offset-2 hover:text-error hover:underline"
               >

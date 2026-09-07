@@ -6,6 +6,7 @@ import {
   isInWatchlist,
   toggleWatchlist,
 } from "@/lib/watchlist";
+import { addUserWatchlist, removeUserWatchlist } from "@/lib/user-data";
 import type { MediaCard } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +42,14 @@ export function WatchlistButton({
   function handleClick(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
+    // Always update the local cache for instant UI feedback, then
+    // sync to supabase (if signed in) in the background.
     toggleWatchlist(media);
+    if (inList) {
+      removeUserWatchlist(media);
+    } else {
+      addUserWatchlist(media);
+    }
   }
 
   const sizes = {
