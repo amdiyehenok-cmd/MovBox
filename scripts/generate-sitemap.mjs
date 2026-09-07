@@ -1,18 +1,34 @@
-// Generate sitemap.xml at build time as a static file in public/.
-// Runs via `prebuild` in package.json. The h5-api call has a 5s
-// timeout and a try/catch so a slow/down upstream doesn't break
-// the build — we'll just ship the static URLs only.
+// Generate sitemap.xml + video-sitemap.xml at build time as static
+// files in public/. Runs via `prebuild` in package.json.
+//
+// Two sitemaps:
+//   1. /sitemap.xml — standard sitemap with static pages + every
+//      detail URL (movie + tv) we know about.
+//   2. /video-sitemap.xml — Google-specific video sitemap that
+//      unlocks the "Videos" tab in search results + rich video
+//      snippets. One entry per detail page with thumbnail, title,
+//      description, player_loc, family_friendly flag.
+//
+// Auth: mints a Bearer token from h5-api's /app/get-latest-app-pkgs
+// endpoint (same flow as lib/data.ts). All upstream calls are wrapped
+// in try/catch with a 5s timeout so a slow/down upstream never
+// breaks the build.
 
 import { writeFile, mkdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const OUT = join(__dirname, "..", "public", "sitemap.xml");
+const PUBLIC_DIR = join(__dirname, "..", "public");
+const SITEMAP_PATH = join(PUBLIC_DIR, "sitemap.xml");
+const VIDEO_SITEMAP_PATH = join(PUBLIC_DIR, "video-sitemap.xml");
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://movbox.xyz";
 const H5_API_BASE =
   process.env.H5_API_BASE || "https://h5-api.aoneroom.com/wefeed-h5api-bff";
+const SITE_HOST = "https://boxmovies.org";
+const USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 const STATIC_PAGES = [
   { url: "/", changeFrequency: "daily", priority: 1.0 },
@@ -26,60 +42,142 @@ const STATIC_PAGES = [
   { url: "/search", changeFrequency: "never", priority: 0.5 },
 ];
 
-async function fetchWithTimeout(url, ms = 5000) {
+// ---------------------------------------------------------------------------
+// HTTP helpers
+// ---------------------------------------------------------------------------
+
+async function fetchWithTimeout(url, opts = {}, ms = 8000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
   try {
-    const r = await fetch(url, { signal: ctrl.signal });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
+    return await fetch(url, { ...opts, signal: ctrl.signal });
   } finally {
     clearTimeout(t);
   }
 }
 
-async function collectTitles() {
+async function h5Fetch(path, { method = "GET", body = null, token } = {}) {
+  const headers = {
+    Accept: "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.9",
+    Authorization: `Bearer ${token}`,
+    Origin: SITE_HOST,
+    Referer: `${SITE_HOST}/`,
+    "User-Agent": USER_AGENT,
+  };
+  const init = { method, headers };
+  if (body && method === "POST") {
+    headers["Content-Type"] = "application/json";
+    init.body = JSON.stringify(body);
+  }
+  const res = await fetchWithTimeout(`${H5_API_BASE}${path}`, init);
+  if (!res.ok) throw new Error(`h5 ${path} -> ${res.status}`);
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+async function mintToken() {
+  const r = await fetchWithTimeout(
+    `${H5_API_BASE}/app/get-latest-app-pkgs?app_name=moviebox`,
+    {
+      headers: {
+        Origin: SITE_HOST,
+        Referer: `${SITE_HOST}/`,
+        "User-Agent": USER_AGENT,
+        Accept: "application/json, text/plain, */*",
+      },
+    },
+  );
+  if (!r.ok) throw new Error(`token mint -> ${r.status}`);
+  const setCookie = r.headers.get("set-cookie") || "";
+  const m = setCookie.match(/(?:^|,\s*)token=([^;]+)/i);
+  if (!m) throw new Error("no token in set-cookie");
+  return m[1];
+}
+
+// ---------------------------------------------------------------------------
+// Title collection
+// ---------------------------------------------------------------------------
+
+async function collectTitles(token) {
   const seen = new Set();
   const out = [];
-  const add = (detailPath, type) => {
-    if (!detailPath) return;
-    if (seen.has(detailPath)) return;
-    seen.add(detailPath);
-    out.push({ detailPath, type });
+  const add = (item, type) => {
+    if (!item || !item.detailPath) return;
+    if (seen.has(item.detailPath)) return;
+    seen.add(item.detailPath);
+    out.push({
+      detailPath: item.detailPath,
+      type,
+      title: item.title || item.name || "",
+      description: item.overview || item.description || "",
+      posterUrl: item.posterUrl || item.image?.url || "",
+      backdropUrl: item.backdropUrl || "",
+      year: item.year || "",
+      rating: item.rating || item.voteAverage || 0,
+      genres: item.genres || [],
+    });
   };
-  try {
-    // The h5-api requires a Bearer token minted from boxmovies.org
-    // (see lib/data.ts → h5Fetch). For a build-time script we skip
-    // that auth dance and just ship the static URLs — Google will
-    // discover detail pages via internal links from the home page.
-    // If we ever need to enumerate detail pages here, we'd need to
-    // import the h5Fetch helper or duplicate its token-mint logic.
-    //
-    // Leaving the fetch hooks in place (commented) so future me knows
-    // what to wire up.
-    //
-    // const [home, trending] = await Promise.all([
-    //   fetchWithTimeout(`${H5_API_BASE}/home?host=boxmovies.org`).catch(() => null),
-    //   fetchWithTimeout(`${H5_API_BASE}/subject/trending?tabId=TRENDING_MOVIES`).catch(() => null),
-    // ]);
-    // if (home?.data?.operatingList) {
-    //   for (const o of home.data.operatingList) {
-    //     for (const i of o.subjects || []) {
-    //       add(i.detailPath, i.type);
-    //     }
-    //   }
-    // }
-    // if (trending?.data?.results) {
-    //   for (const i of trending.data.results) add(i.detailPath, i.type);
-    // }
-  } catch (e) {
-    console.warn("[sitemap] upstream fetch failed:", e.message);
-  }
+
+  // Fetch from multiple sources in parallel for full coverage.
+  // Each call has its own try/catch so a failure on one doesn't kill
+  // the others.
+  const sources = [
+    ["home", () => h5Fetch("/home?host=boxmovies.org", { token })],
+    ["trending", () =>
+      h5Fetch("/subject/trending?page=0&perPage=50", { token })],
+  ];
+
+  await Promise.all(
+    sources.map(async ([label, fn]) => {
+      try {
+        const r = await fn();
+        if (!r) return;
+        // Different response shapes across endpoints — handle all
+        const items = [];
+        if (r.data?.operatingList) {
+          for (const o of r.data.operatingList) {
+            if (Array.isArray(o.subjects)) items.push(...o.subjects);
+          }
+        }
+        if (r.data?.results) items.push(...r.data.results);
+        if (r.data?.subjects) items.push(...r.data.subjects);
+        if (r.data?.items) items.push(...r.data.items);
+        for (const it of items) {
+          // Normalize: h5-api uses different field names depending on
+          // the endpoint. detailPath is the unique key we use
+          // everywhere; try common variants.
+          const dp =
+            it.detailPath ||
+            it.subjectId ||
+            it.id ||
+            it.subject_id ||
+            it.path;
+          if (!dp) continue;
+          const type = it.type || (it.subjectType === 1 ? "tv" : "movie");
+          add({ ...it, detailPath: dp }, type);
+        }
+        console.log(`[sitemap] ${label}: ${items.length} items`);
+      } catch (e) {
+        console.warn(`[sitemap] ${label} failed: ${e.message}`);
+      }
+    }),
+  );
+
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// XML writers
+// ---------------------------------------------------------------------------
+
 function xmlEscape(s) {
-  return s.replace(/[<>&'"]/g, (c) => ({
+  if (s == null) return "";
+  return String(s).replace(/[<>&'"]/g, (c) => ({
     "<": "&lt;",
     ">": "&gt;",
     "&": "&amp;",
@@ -99,13 +197,67 @@ function urlEntry(path, lastmod, changeFrequency, priority) {
   ].join("\n");
 }
 
+function videoUrlEntry(t, lastmod) {
+  const path = `/${t.type === "tv" ? "tv" : "movie"}/${encodeURIComponent(t.detailPath)}`;
+  const loc = `${SITE_URL}${path}`;
+  const thumb = t.backdropUrl || t.posterUrl || `${SITE_URL}/og-image.png`;
+  const desc = (t.description || `Watch ${t.title} online in 4K on Movbox.`).slice(0, 2048);
+  const title = (t.title || path).slice(0, 100);
+  const tag = (t.genres || [])
+    .slice(0, 8)
+    .map((g) => (typeof g === "string" ? g : g.name))
+    .filter(Boolean)
+    .slice(0, 32);
+  const familyFriendly = "yes";
+  return [
+    "  <url>",
+    `    <loc>${xmlEscape(loc)}</loc>`,
+    `    <lastmod>${lastmod}</lastmod>`,
+    "    <video:video>",
+    `      <video:thumbnail_loc>${xmlEscape(thumb)}</video:thumbnail_loc>`,
+    `      <video:title>${xmlEscape(title)}</video:title>`,
+    `      <video:description>${xmlEscape(desc)}</video:description>`,
+    `      <video:player_loc>${xmlEscape(loc)}</video:player_loc>`,
+    `      <video:family_friendly>${familyFriendly}</video:family_friendly>`,
+    `      <video:live>no</video:live>`,
+    `      <video:requires_subscription>no</video:requires_subscription>`,
+    ...(tag.length
+      ? [`      <video:tag>${xmlEscape(tag.join(", "))}</video:tag>`]
+      : []),
+    "    </video:video>",
+    "  </url>",
+  ].join("\n");
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
 async function main() {
   const now = new Date().toISOString();
-  const titles = await collectTitles();
-  const lines = [
+
+  // 1. Try to fetch detail titles for the dynamic URLs. If the
+  //    upstream is down, we still ship the static URLs — never let
+  //    a slow upstream break the build.
+  let titles = [];
+  try {
+    console.log("[sitemap] minting token…");
+    const token = await mintToken();
+    console.log("[sitemap] collecting titles…");
+    titles = await collectTitles(token);
+    console.log(`[sitemap] got ${titles.length} unique titles`);
+  } catch (e) {
+    console.warn(`[sitemap] upstream collection failed: ${e.message}`);
+    console.warn("[sitemap] continuing with static URLs only");
+  }
+
+  // 2. Write sitemap.xml
+  const sitemapLines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...STATIC_PAGES.map((p) => urlEntry(p.url, now, p.changeFrequency, p.priority)),
+    ...STATIC_PAGES.map((p) =>
+      urlEntry(p.url, now, p.changeFrequency, p.priority),
+    ),
     ...titles.map((t) =>
       urlEntry(
         `/${t.type === "tv" ? "tv" : "movie"}/${encodeURIComponent(t.detailPath)}`,
@@ -116,15 +268,35 @@ async function main() {
     ),
     "</urlset>",
     "",
-  ];
-  await mkdir(dirname(OUT), { recursive: true });
-  await writeFile(OUT, lines.join("\n"), "utf8");
-  const staticCount = STATIC_PAGES.length;
-  const dynamicCount = titles.length;
-  console.log(`[sitemap] wrote ${OUT} (${staticCount} static + ${dynamicCount} detail = ${staticCount + dynamicCount} urls)`);
+  ].join("\n");
+  await mkdir(PUBLIC_DIR, { recursive: true });
+  await writeFile(SITEMAP_PATH, sitemapLines, "utf8");
+  const total = STATIC_PAGES.length + titles.length;
+  console.log(
+    `[sitemap] wrote ${SITEMAP_PATH} (${STATIC_PAGES.length} static + ${titles.length} detail = ${total} urls)`,
+  );
+
+  // 3. Write video-sitemap.xml (only if we got titles — otherwise skip)
+  if (titles.length > 0) {
+    const videoLines = [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
+      '        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">',
+      ...titles.map((t) => videoUrlEntry(t, now)),
+      "</urlset>",
+      "",
+    ].join("\n");
+    await writeFile(VIDEO_SITEMAP_PATH, videoLines, "utf8");
+    console.log(
+      `[sitemap] wrote ${VIDEO_SITEMAP_PATH} (${titles.length} videos)`,
+    );
+  } else {
+    console.log("[sitemap] no titles, skipping video-sitemap.xml");
+  }
 }
 
 main().catch((e) => {
   console.error("[sitemap] failed:", e);
-  process.exit(1);
+  // Don't fail the build — the static URLs are still useful.
+  process.exit(0);
 });
