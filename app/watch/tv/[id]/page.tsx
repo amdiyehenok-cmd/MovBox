@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { WatchSession } from "@/components/watch/WatchSession";
+import { AutoplayOverlay } from "@/components/watch/AutoplayOverlay";
 import { useSources } from "@/lib/useSources";
 import { useTVWatch } from "@/lib/watch-context";
 import type { BoxSource, BoxCaption } from "@/lib/types";
@@ -65,6 +66,16 @@ function WatchTVPage() {
   // so the player never blanks out on episode change.
   const [prevSources, setPrevSources] = useState<BoxSource[]>([]);
   const [prevCaptions, setPrevCaptions] = useState<BoxCaption[]>([]);
+
+  // Autoplay state. When the player's onEnded fires, we set
+  // `autoplayOpen` with the next episode/season info. The
+  // AutoplayOverlay runs a 5s countdown; on completion it calls
+  // goToEpisode(season, episode).
+  const [autoplay, setAutoplay] = useState<{
+    nextSeason: number;
+    nextEpisode: number;
+    nextLabel: string;
+  } | null>(null);
 
   const { data, loading } = useSources({
     detailPath: details.detailPath,
@@ -180,7 +191,45 @@ function WatchTVPage() {
           seasons={details.seasons as SeasonInfo[]}
           related={related}
           watchlistMedia={watchlistMedia}
+          onEnded={() => {
+            // Resolve the next episode and open the autoplay overlay.
+            // If there's a next episode in the current season, use it.
+            // Otherwise jump to the first episode of the next season.
+            // If neither, don't open the overlay (end of series).
+            if (nextEp != null) {
+              setAutoplay({
+                nextSeason: season,
+                nextEpisode: nextEp,
+                nextLabel: `S${season} · E${nextEp}`,
+              });
+            } else if (nextSeason) {
+              setAutoplay({
+                nextSeason: nextSeason.season,
+                nextEpisode: 1,
+                nextLabel: `S${nextSeason.season} · E1`,
+              });
+            }
+          }}
         />
+
+        {/* Autoplay countdown — appears on top of the player when
+            the current episode ends. User can cancel or hit "Play
+            now" to skip the countdown. */}
+        {autoplay ? (
+          <AutoplayOverlay
+            nextTitle={details.title}
+            nextLabel={autoplay.nextLabel}
+            nextBackdrop={details.backdropUrl ?? details.posterUrl}
+            season={autoplay.nextSeason}
+            episode={autoplay.nextEpisode}
+            onPlayNext={() => {
+              const target = autoplay;
+              setAutoplay(null);
+              goToEpisode(target.nextSeason, target.nextEpisode);
+            }}
+            onCancel={() => setAutoplay(null)}
+          />
+        ) : null}
 
         {/* Initial-load pill (only when we have NO sources at all yet). */}
         {activeSources.length === 0 && (
