@@ -22,6 +22,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(__dirname, "..", "public");
 const SITEMAP_PATH = join(PUBLIC_DIR, "sitemap.xml");
 const VIDEO_SITEMAP_PATH = join(PUBLIC_DIR, "video-sitemap.xml");
+const SITEMAP_INDEX_PATH = join(PUBLIC_DIR, "sitemap-index.xml");
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://movbox.xyz";
 const H5_API_BASE =
@@ -305,6 +306,30 @@ async function main() {
   } else {
     console.log("[sitemap] no titles, skipping video-sitemap.xml");
   }
+
+  // 4. Write sitemap-index.xml that references both sitemaps. Submit
+  //    this ONE file to Google Search Console and Bing Webmaster
+  //    Tools — they fetch the index, discover the children, and
+  //    keep everything in sync automatically. This is the "big site"
+  //    pattern: single entry point, multiple specialized sitemaps.
+  const indexEntries = [
+    { loc: `${SITE_URL}/sitemap.xml`, lastmod: now },
+    { loc: `${SITE_URL}/video-sitemap.xml`, lastmod: now },
+  ];
+  const indexLines = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    ...indexEntries.map(
+      (e) =>
+        `  <sitemap><loc>${xmlEscape(e.loc)}</loc><lastmod>${e.lastmod}</lastmod></sitemap>`,
+    ),
+    "</sitemapindex>",
+    "",
+  ].join("\n");
+  await writeFile(SITEMAP_INDEX_PATH, indexLines, "utf8");
+  console.log(
+    `[sitemap] wrote ${SITEMAP_INDEX_PATH} (${indexEntries.length} child sitemaps)`,
+  );
 }
 
 main().catch((e) => {
