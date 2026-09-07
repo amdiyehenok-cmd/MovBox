@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "analyze": "ANALYZE=true next build"
+    "analyze": "ANALYZE=true next build",
+    "sitemap": "node scripts/generate-sitemap.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.3.3",
