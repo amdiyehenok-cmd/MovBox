@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { PageLoader } from "@/components/ui/PageLoader";
 import { Player } from "@/components/player/Player";
 import { WatchSession } from "./WatchSession";
+import { MovieAutoplayOverlay } from "./MovieAutoplayOverlay";
+import { useRouter } from "next/navigation";
 import { useSources } from "@/lib/useSources";
 import type { BoxSource, BoxCaption, MediaCard } from "@/lib/types";
 import type { SeasonInfo } from "@/components/player/SeasonPicker";
@@ -44,6 +46,8 @@ interface WatchViewProps {
  */
 export function WatchView(props: WatchViewProps) {
   const { type, detailPath, season, episode } = props;
+  const router = useRouter();
+  const [movieAutoplayOpen, setMovieAutoplayOpen] = useState(false);
   const { data, loading, error, refresh } = useSources({
     detailPath,
     season,
@@ -166,11 +170,38 @@ export function WatchView(props: WatchViewProps) {
   }
 
   return (
-    <WatchSession
-      {...props}
-      sources={sources}
-      captions={captions}
-      loading={loading}
-    />
+    <>
+      <WatchSession
+        {...props}
+        sources={sources}
+        captions={captions}
+        loading={loading}
+        onEnded={() => {
+          // Movies get the related-movies autoplay. TV routes
+          // own their own autoplay (see app/watch/tv/[id]/page.tsx)
+          // because they have an explicit next-episode chain.
+          if (props.type === "movie" && props.related.length > 0) {
+            setMovieAutoplayOpen(true);
+          }
+        }}
+      />
+      {/* Movie autoplay overlay — only shows when:
+            1. the user just finished a movie
+            2. there are related movies to recommend
+          TV pages own their own autoplay. */}
+      {props.type === "movie" && movieAutoplayOpen && props.related.length > 0 ? (
+        <MovieAutoplayOverlay
+          topPick={props.related[0]}
+          alsoRecommended={props.related.slice(1, 4)}
+          onPlayNext={(m) => {
+            setMovieAutoplayOpen(false);
+            router.push(
+              `/watch/${m.type === "tv" ? "tv" : "movie"}/${encodeURIComponent(m.id)}`,
+            );
+          }}
+          onCancel={() => setMovieAutoplayOpen(false)}
+        />
+      ) : null}
+    </>
   );
 }
