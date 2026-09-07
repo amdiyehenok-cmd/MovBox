@@ -2,6 +2,7 @@ import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { MovieRow } from "@/components/home/MovieRow";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { FeatureFooter } from "@/components/home/FeatureFooter";
+import { ContinueWatchingRow } from "@/components/home/ContinueWatchingRow";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { BannerAd } from "@/components/ads/BannerAd";
 import { ADSTERRA } from "@/lib/ads/adsterra";
@@ -94,6 +95,11 @@ export default async function HomePage() {
           cta="See offer"
         />
       </div>
+
+      {/* Continue Watching — only shows if the user has history.
+          Reads from localStorage; SSR returns nothing (avoids
+          hydration mismatch). */}
+      <ContinueWatchingRow />
 
       {/* Promo banner + features just under the hero */}
       <div className="pt-6">

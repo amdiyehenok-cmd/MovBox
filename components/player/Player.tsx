@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import type { BoxSource, BoxCaption } from "@/lib/types";
 import { PrerollAd } from "@/components/ads/PrerollAd";
+import { recordProgress } from "@/lib/history";
 import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
@@ -69,11 +70,19 @@ export interface PlayerProps {
   /** Title-level captions list (subtitles for the whole movie/episode). */
   captions?: BoxCaption[];
   poster?: string | null;
+  /** Backdrop (16:9) — better for the Continue Watching row. */
+  backdrop?: string | null;
   title: string;
   metaLine?: string;
   imdbScore?: string | null;
   /** boxmovies detailPath — used to build a sensible Referer in /api/video-proxy. */
   detailPath?: string;
+  /** "movie" | "tv" — used to record watch history. */
+  type?: "movie" | "tv";
+  /** TV-only. Season number for the current episode. */
+  season?: number;
+  /** TV-only. Episode number within the season. */
+  episode?: number;
   activeSourceIndex: number;
   onSourceChange?: (index: number) => void;
   onRate?: (rating: "up" | "down") => void;
@@ -195,10 +204,14 @@ export function Player({
   sources,
   captions = [],
   poster,
+  backdrop,
   title,
   metaLine,
   imdbScore,
   detailPath,
+  type,
+  season,
+  episode,
   activeSourceIndex,
   onSourceChange,
   onRate,
@@ -214,6 +227,12 @@ export function Player({
 
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Watch-history bookkeeping. lastHistoryTimeRef gates the writes
+  // so we never block the onTimeUpdate hot path. scheduleHistory
+  // batches the write through a microtask so multiple timeupdate
+  // events in a single frame collapse into one recordProgress call.
+  const lastHistoryTimeRef = useRef(0);
+  const pendingHistoryRef = useRef<number | null>(null);
   // The parent (WatchView) is still fetching sources. While true, the
   // player shows a clean loading skeleton and never flashes the "no
   // sources" empty-state, which was the most visible bug on the page.
@@ -803,6 +822,64 @@ export function Player({
   }
 
   // -------------------------------------------------------------------------
+  // Watch history — recordProgress helpers
+  // -------------------------------------------------------------------------
+  //
+  // We don't want to block the onTimeUpdate hot path with a
+  // localStorage write on every tick. flushHistory writes the
+  // pending time immediately (used on pause + beforeunload).
+  // scheduleHistory defers via queueMicrotask so multiple updates
+  // in the same frame collapse into one write.
+
+  function writeHistoryNow(t: number) {
+    if (!detailPath) return;
+    recordProgress({
+      detailPath,
+      type: type ?? "movie",
+      title,
+      season: type === "tv" ? season : undefined,
+      episode: type === "tv" ? episode : undefined,
+      currentTime: t,
+      duration,
+      posterUrl: poster ?? "",
+      backdropUrl: backdrop ?? poster ?? "",
+    });
+  }
+
+  function scheduleHistory(t: number) {
+    pendingHistoryRef.current = t;
+    queueMicrotask(() => {
+      if (pendingHistoryRef.current != null) {
+        writeHistoryNow(pendingHistoryRef.current);
+        pendingHistoryRef.current = null;
+      }
+    });
+  }
+
+  function flushHistory() {
+    // Use the latest known time. Read from the video element
+    // directly so we don't depend on the React `time` state
+    // (which might be stale by the time this fires).
+    const v = videoRef.current;
+    const t = v && Number.isFinite(v.currentTime) ? v.currentTime : time;
+    if (t > 0) writeHistoryNow(t);
+  }
+
+  // Persist on tab close / refresh.
+  useEffect(() => {
+    function onUnload() {
+      flushHistory();
+    }
+    window.addEventListener("beforeunload", onUnload);
+    window.addEventListener("pagehide", onUnload);
+    return () => {
+      window.removeEventListener("beforeunload", onUnload);
+      window.removeEventListener("pagehide", onUnload);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailPath, type, title, season, episode, duration, poster, backdrop, time]);
+
+  // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
 
@@ -835,8 +912,24 @@ export function Player({
           // overlay, not from the video's own onPlay (which also
           // fires when the pre-roll finishes and we call .play()).
         }}
-        onPause={() => setPlaying(false)}
-        onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
+        onPause={() => {
+          setPlaying(false);
+          // Snapshot progress on pause so the user can come back to
+          // exactly where they left off.
+          flushHistory();
+        }}
+        onTimeUpdate={(e) => {
+          const t = e.currentTarget.currentTime;
+          setTime(t);
+          // Throttle: recordHistory() already throttles internally
+          // by comparing to the last recorded timestamp, but we also
+          // gate the call here to once every 5s to keep this hot
+          // path light.
+          if (t - lastHistoryTimeRef.current >= 5) {
+            lastHistoryTimeRef.current = t;
+            scheduleHistory(t);
+          }
+        }}
         onProgress={(e) => {
           const v = e.currentTarget;
           if (v.buffered.length > 0) {
@@ -850,7 +943,17 @@ export function Player({
           setLoading(false);
           setPlaying(true);
         }}
-        onEnded={onEnded}
+        onEnded={(e) => {
+          // Mark the entry as fully watched so the Continue Watching
+          // row drops it. recordProgress() does this automatically
+          // when currentTime/duration > 0.95, so we just trigger a
+          // final write at the very end.
+          const v = e.currentTarget;
+          if (v && Number.isFinite(v.duration)) {
+            writeHistoryNow(v.duration);
+          }
+          onEnded?.();
+        }}
         onError={() => {
           if (!error) setError("Stream error. Try a different source.");
         }}

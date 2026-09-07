@@ -118,8 +118,12 @@ export function WatchSession(props: WatchSessionProps) {
             activeSourceIndex={activeSourceIndex}
             onSourceChange={setActiveSourceIndex}
             poster={backdropUrl ?? posterUrl}
+            backdrop={backdropUrl ?? null}
             title={title}
             detailPath={detailPath}
+            type={type}
+            season={seasonNumber}
+            episode={episodeNumber}
             loading={loading}
             metaLine={
               type === "tv" && seasonNumber != null && episodeNumber != null
