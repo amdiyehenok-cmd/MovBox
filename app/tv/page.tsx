@@ -4,6 +4,7 @@ import {
   getBoxmoviesFilterOptions,
 } from "@/lib/data";
 import { BrowseClient } from "@/components/browse/BrowseClient";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 export const revalidate = 300;
 
@@ -36,6 +37,12 @@ export default async function TVPage() {
 
   return (
     <div className="min-h-screen pb-16 pt-16 md:pb-12 md:pt-20">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "TV Shows", path: "/tv" },
+        ]}
+      />
       <div className="mx-auto w-full max-w-[1500px] px-3 sm:px-5 md:px-6">
         <header className="mb-3 sm:mb-5 md:mb-6">
           <h1 className="font-display text-2xl font-bold text-cream sm:text-3xl md:text-4xl">

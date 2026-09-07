@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { getMovieGenres, getTVGenres } from "@/lib/tmdb";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 export const revalidate = 3600;
 
@@ -35,6 +36,12 @@ export default async function GenresPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-16 pt-24 md:px-6 lg:px-8">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Genres", path: "/genres" },
+        ]}
+      />
       <header className="mb-8">
         <h1 className="font-display text-3xl font-bold text-cream md:text-4xl">
           Genres

@@ -5,6 +5,7 @@ import {
   getBoxmoviesFilterOptions,
 } from "@/lib/data";
 import { BrowseClient } from "@/components/browse/BrowseClient";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 export const revalidate = 600;
 
@@ -41,6 +42,12 @@ export default async function AnimationsPage() {
 
   return (
     <div className="min-h-screen pb-16 pt-16 md:pb-12 md:pt-20">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Animations", path: "/animations" },
+        ]}
+      />
       <div className="mx-auto w-full max-w-[1500px] px-3 sm:px-5 md:px-6">
         <header className="mb-3 flex items-center gap-2.5 sm:mb-5 sm:gap-3 md:mb-6">
           <Sparkles className="h-5 w-5 text-accent-bright sm:h-6 sm:w-6 md:h-7 md:w-7" />

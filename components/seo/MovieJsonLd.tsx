@@ -58,7 +58,15 @@ export function MovieJsonLd({ details }: JsonLdProps) {
     name: details.title,
     url: pageUrl,
     description: details.synopsis,
-    image: thumbnail,
+    // Image gallery — Google uses multiple images for the
+    // "image carousel" rich result on mobile. Backdrop is the
+    // primary, poster is the secondary, and we add the page's
+    // own OG image as a guaranteed third.
+    image: [
+      details.backdropUrl,
+      details.posterUrl,
+      `${SITE_URL}/opengraph-image`,
+    ].filter(Boolean),
     datePublished: details.releaseDate || undefined,
     director: director.length ? director : undefined,
     actor: actor.length ? actor : undefined,
@@ -175,7 +183,11 @@ export function TVShowJsonLd({ details }: JsonLdProps) {
     name: details.title,
     url: pageUrl,
     description: details.synopsis,
-    image: thumbnail,
+    image: [
+      details.backdropUrl,
+      details.posterUrl,
+      `${SITE_URL}/opengraph-image`,
+    ].filter(Boolean),
     datePublished: details.releaseDate || undefined,
     director: director.length ? director : undefined,
     actor: actor.length ? actor : undefined,

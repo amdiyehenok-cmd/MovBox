@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Flame } from "lucide-react";
 import { TrendingRow } from "@/components/home/TrendingRow";
 import { getBoxmoviesTrending } from "@/lib/data";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import type { MediaCard } from "@/lib/types";
 
 export const revalidate = 1800; // 30 min
@@ -51,6 +52,12 @@ export default async function TrendingPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-16 pt-24 md:px-6 lg:px-8">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Trending", path: "/trending" },
+        ]}
+      />
       <header className="mb-10">
         <div className="flex items-center gap-3">
           <Flame className="h-8 w-8 text-accent-bright" />

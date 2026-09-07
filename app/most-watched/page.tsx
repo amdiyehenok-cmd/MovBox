@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Flame } from "lucide-react";
 import { MediaGrid } from "@/components/media/MediaGrid";
 import { getBoxmoviesHome } from "@/lib/data";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import type { MediaCard } from "@/lib/types";
 
 export const revalidate = 1800;
@@ -46,6 +47,12 @@ export default async function MostWatchedPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-16 pt-24 md:px-6 lg:px-8">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", path: "/" },
+          { name: "Most Watched", path: "/most-watched" },
+        ]}
+      />
       <header className="mb-8 flex items-center gap-3">
         <Flame className="h-7 w-7 text-accent-bright" />
         <h1 className="font-display text-3xl font-bold text-cream md:text-4xl">

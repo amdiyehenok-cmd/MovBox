@@ -41,6 +41,18 @@ const STATIC_PAGES = [
   { url: "/genres", changeFrequency: "weekly", priority: 0.6 },
   { url: "/movbox-app", changeFrequency: "daily", priority: 0.7 },
   { url: "/search", changeFrequency: "never", priority: 0.5 },
+  { url: "/blog", changeFrequency: "weekly", priority: 0.8 },
+];
+
+// Blog slugs — must stay in sync with lib/blog/articles.ts. We
+// re-import the source so the build fails if articles.ts has a
+// syntax error. (dynamic import keeps this script zero-dep.)
+const BLOG_SLUGS = [
+  "top-10-movies-this-week",
+  "how-to-find-best-4k-content",
+  "why-we-built-movbox",
+  "best-k-drama-2026",
+  "movbox-vs-other-streaming-sites",
 ];
 
 // ---------------------------------------------------------------------------
@@ -279,6 +291,9 @@ async function main() {
         0.7,
       ),
     ),
+    // Blog articles. We keep this list in sync with
+    // lib/blog/articles.ts. Adding a new article = appending here.
+    ...BLOG_SLUGS.map((slug) => urlEntry(`/blog/${slug}`, now, "monthly", 0.6)),
     "</urlset>",
     "",
   ].join("\n");
