@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSupabase } from "@/lib/auth/client";
+import { createServerSupabase } from "@/lib/auth/client";
 import { getBoxmoviesHome } from "@/lib/data";
 
 /**
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
   // 1. Auth: must be a logged-in user with a profile in supabase.
   //    We block anonymous callers from burning the 200/day quota.
   try {
-    const supabase = await getServerSupabase();
+    const supabase = await createServerSupabase();
     const {
       data: { user },
     } = await supabase.auth.getUser();
