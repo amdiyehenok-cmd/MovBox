@@ -198,11 +198,18 @@ function urlEntry(path, lastmod, changeFrequency, priority) {
 }
 
 function videoUrlEntry(t, lastmod) {
-  const path = `/${t.type === "tv" ? "tv" : "movie"}/${encodeURIComponent(t.detailPath)}`;
-  const loc = `${SITE_URL}${path}`;
+  const isTv = t.type === "tv";
+  // The info page (the canonical <loc>). For TV items the boxmovies
+  // data labels everything as "tv" but the visible URL is /movie/
+  // for movies and /tv/ for shows. The watch page is where the
+  // video actually plays — that's the only valid player_loc.
+  const infoPath = `/${isTv ? "tv" : "movie"}/${encodeURIComponent(t.detailPath)}`;
+  const watchPath = `/watch/${isTv ? "tv" : "movie"}/${encodeURIComponent(t.detailPath)}`;
+  const loc = `${SITE_URL}${infoPath}`;
+  const playerLoc = `${SITE_URL}${watchPath}`;
   const thumb = t.backdropUrl || t.posterUrl || `${SITE_URL}/og-image.png`;
   const desc = (t.description || `Watch ${t.title} online in 4K on Movbox.`).slice(0, 2048);
-  const title = (t.title || path).slice(0, 100);
+  const title = (t.title || infoPath).slice(0, 100);
   const tag = (t.genres || [])
     .slice(0, 8)
     .map((g) => (typeof g === "string" ? g : g.name))
@@ -217,7 +224,12 @@ function videoUrlEntry(t, lastmod) {
     `      <video:thumbnail_loc>${xmlEscape(thumb)}</video:thumbnail_loc>`,
     `      <video:title>${xmlEscape(title)}</video:title>`,
     `      <video:description>${xmlEscape(desc)}</video:description>`,
-    `      <video:player_loc>${xmlEscape(loc)}</video:player_loc>`,
+    // player_loc must point to the actual player page (the /watch/
+    // route), NOT the same as <loc>. Google rejects entries where
+    // player_loc == loc. We omit content_loc because the actual
+    // stream URL is short-lived (proxied through the thin relay) —
+    // pointing to a stale URL would be worse than omitting.
+    `      <video:player_loc allow_embed=\"yes\">${xmlEscape(playerLoc)}</video:player_loc>`,
     `      <video:family_friendly>${familyFriendly}</video:family_friendly>`,
     `      <video:live>no</video:live>`,
     `      <video:requires_subscription>no</video:requires_subscription>`,
