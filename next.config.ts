@@ -1,7 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Vercel's free tier limits Image Optimization to ~1,000 unique
+  // source images per month. With 355+ titles × 2 images each (poster
+  // + backdrop) we blow through that in a single day. Setting
+  // `unoptimized: true` passes the source image straight to the
+  // browser — no Vercel proxy, no quota, no 402s.
+  //
+  // The trade-off: we lose automatic webp conversion + responsive
+  // srcSet generation. The boxmovies CDN (pbcdnw.aoneroom.com) already
+  // serves reasonably-sized jpgs, and Cloudflare applies its own
+  // image optimizations on the edge, so the user-visible impact
+  // is small. If we ever upgrade to a paid plan, flip this to false
+  // and the optimization comes back automatically.
   images: {
+    unoptimized: true,
     remotePatterns: [
       // TMDB (legacy — only used by the old detail pages we are sunsetting)
       { protocol: "https", hostname: "image.tmdb.org" },
@@ -13,6 +26,11 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "bcdnxw.hakunaymatata.com" },
       { protocol: "https", hostname: "spa.aoneroom.com" },
       { protocol: "https", hostname: "image.themoviedb.org" },
+      // Google user avatars (for AuthButton)
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "lh4.googleusercontent.com" },
+      { protocol: "https", hostname: "lh5.googleusercontent.com" },
+      { protocol: "https", hostname: "lh6.googleusercontent.com" },
     ],
   },
   // Strict React 19 — already on
