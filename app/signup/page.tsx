@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AuthLayout } from "@/components/auth/AuthLayout";
-import { SignupForm } from "./SignupForm";
+import { SignupForm } from "@/components/auth/SignupForm";
 
 export const metadata: Metadata = {
   title: "Sign Up — Movbox",
