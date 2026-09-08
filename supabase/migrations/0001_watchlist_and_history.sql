@@ -50,18 +50,21 @@ create index if not exists watchlist_user_id_idx
 -- the same episode again, we upsert the position.
 
 create table if not exists public.watch_history (
-  id           uuid        primary key default gen_random_uuid(),
-  user_id      uuid        not null references auth.users(id) on delete cascade,
-  detail_path  text        not null,
-  media_type   text        not null check (media_type in ('movie', 'tv')),
-  title        text        not null,
-  season       integer,
-  episode      integer,
-  current_time numeric     not null default 0,
-  duration     numeric     not null default 0,
-  poster_path  text,
-  backdrop_path text,
-  last_watched timestamptz not null default now(),
+  id                uuid        primary key default gen_random_uuid(),
+  user_id           uuid        not null references auth.users(id) on delete cascade,
+  detail_path       text        not null,
+  media_type        text        not null check (media_type in ('movie', 'tv')),
+  title             text        not null,
+  season            integer,
+  episode           integer,
+  -- Note: PostgreSQL reserves `current_time` as a system function, so
+  -- the column is named `progress_seconds` instead. The Next.js
+  -- client (lib/user-data.ts) writes `progress_seconds` to match.
+  progress_seconds  numeric     not null default 0,
+  duration_seconds  numeric     not null default 0,
+  poster_path       text,
+  backdrop_path     text,
+  last_watched      timestamptz not null default now(),
   unique (user_id, detail_path, media_type, season, episode)
 );
 

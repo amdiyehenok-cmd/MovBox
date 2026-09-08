@@ -192,7 +192,7 @@ export async function getUserHistory(): Promise<WatchHistoryItem[]> {
     const { data, error } = await supabase
       .from("watch_history")
       .select(
-        "detail_path, media_type, title, season, episode, current_time, duration, poster_path, backdrop_path, last_watched",
+        "detail_path, media_type, title, season, episode, progress_seconds, duration_seconds, poster_path, backdrop_path, last_watched",
       )
       .eq("user_id", uid)
       .order("last_watched", { ascending: false })
@@ -225,8 +225,8 @@ export async function recordUserProgress(
         title: item.title,
         season: item.season ?? null,
         episode: item.episode ?? null,
-        current_time: item.currentTime,
-        duration: item.duration,
+        progress_seconds: item.currentTime,
+        duration_seconds: item.duration,
         poster_path: item.posterUrl || null,
         backdrop_path: item.backdropUrl || null,
         last_watched: new Date().toISOString(),
@@ -328,8 +328,8 @@ export async function migrateLocalHistoryToSupabase(): Promise<{
           title: item.title,
           season: item.season ?? null,
           episode: item.episode ?? null,
-          current_time: item.currentTime,
-          duration: item.duration,
+          progress_seconds: item.currentTime,
+          duration_seconds: item.duration,
           poster_path: item.posterUrl || null,
           backdrop_path: item.backdropUrl || null,
           last_watched: new Date(item.lastWatched).toISOString(),
@@ -381,8 +381,8 @@ function rowToHistoryItem(row: {
   title: string;
   season: number | null;
   episode: number | null;
-  current_time: number;
-  duration: number;
+  progress_seconds: number;
+  duration_seconds: number;
   poster_path: string | null;
   backdrop_path: string | null;
   last_watched: string;
@@ -393,8 +393,8 @@ function rowToHistoryItem(row: {
     title: row.title,
     season: row.season ?? undefined,
     episode: row.episode ?? undefined,
-    currentTime: Number(row.current_time),
-    duration: Number(row.duration),
+    currentTime: Number(row.progress_seconds),
+    duration: Number(row.duration_seconds),
     posterUrl: row.poster_path ?? "",
     backdropUrl: row.backdrop_path ?? row.poster_path ?? "",
     lastWatched: new Date(row.last_watched).getTime(),
