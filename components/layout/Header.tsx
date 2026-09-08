@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { User } from "lucide-react";
 import { Logo } from "./Logo";
 import { SearchBar } from "./SearchBar";
-import { Button } from "@/components/ui/Button";
+import { AuthButton } from "./AuthButton";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -74,22 +73,7 @@ export function Header() {
 
         <div className="ml-auto flex items-center gap-1.5 md:gap-2.5">
           <SearchBar className="hidden w-56 lg:flex" />
-          <Link
-            href="/login"
-            aria-label="Sign in"
-            className="hidden md:inline-flex"
-          >
-            <Button variant="primary" size="sm">
-              Sign In
-            </Button>
-          </Link>
-          <Link
-            href="/profile"
-            aria-label="Account"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface-elevated/60 text-text-secondary transition-colors hover:border-accent hover:text-accent-bright md:h-10 md:w-10"
-          >
-            <User className="h-4 w-4 md:h-5 md:w-5" />
-          </Link>
+          <AuthButton />
         </div>
       </div>
     </header>
