@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Mail, Lock, User, Eye, EyeOff, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { GoogleIcon } from "@/components/auth/SocialIcons";
-import { createBrowserSupabase } from "@/lib/auth/client";
+import { createBrowserSupabase } from "@/lib/auth/browser";
 
 export function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);

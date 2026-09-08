@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { GoogleIcon } from "@/components/auth/SocialIcons";
-import { createBrowserSupabase } from "@/lib/auth/client";
+import { createBrowserSupabase } from "@/lib/auth/browser";
 
 export function LoginForm() {
   const search = useSearchParams();

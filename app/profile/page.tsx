@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createServerSupabase } from "@/lib/auth/client";
+import { createServerSupabase } from "@/lib/auth/server";
 import { ProfileClient } from "./ProfileClient";
 
 export const revalidate = 0; // always fresh

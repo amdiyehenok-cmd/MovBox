@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/auth/client";
+import { createServerSupabase } from "@/lib/auth/server";
 
 /** POST /api/auth/signout — clears the Supabase session and redirects to /. */
 export const runtime = "nodejs";

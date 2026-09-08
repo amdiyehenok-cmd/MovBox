@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerSupabase } from "@/lib/auth/client";
+import { createServerSupabase } from "@/lib/auth/server";
 import { getBoxmoviesHome } from "@/lib/data";
 
 /**

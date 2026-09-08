@@ -13,7 +13,7 @@
  * service-role key in `lib/supabase-admin.ts`.
  */
 
-import { createBrowserSupabase } from "@/lib/auth/client";
+import { createBrowserSupabase } from "@/lib/auth/browser";
 import type { MediaCard } from "@/lib/types";
 import {
   addToWatchlist as lsAdd,
