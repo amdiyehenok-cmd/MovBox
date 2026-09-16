@@ -1,21 +1,17 @@
 /**
  * Client-side ad frequency cap. Cheap, runs in localStorage, never
- * makes a network call. Server-side mirroring lives in
- * `lib/ads/server-frequency.ts` (uses Supabase ad_impressions for
- * signed-in users).
+ * makes a network call.
  *
- * Rules:
- *  - Each slot has its own per-session cap (configured in
- *    `adsterra.ts` → AD_FREQUENCY).
- *  - There's a hard total cap across all slots. After 3 ad
- *    impressions in a session we stop showing ads entirely.
- *  - A "session" is 30 min of inactivity on the same tab. Closing
- *    the tab starts a new session.
- *  - The user can dismiss the social bar; that dismissal is sticky
- *    for the rest of the session.
+ * Rules (matches AD_FREQUENCY in adcash.ts):
+ *  - One impression per slot per session (display, interstitial, etc.)
+ *  - Hard total cap of 4 paid impressions per session, then silent.
+ *  - A "session" is 30 min of inactivity on the same tab.
+ *  - Closing the tab starts a new session.
+ *  - Dismissals are sticky for the rest of the session (e.g. user
+ *    clicks × on the video slider; it won't come back this session).
  */
 
-import { AD_FREQUENCY } from "./adsterra";
+import { AD_FREQUENCY, type AdSlotName, AD_SLOT } from "./adcash";
 
 const SESSION_TTL_MS = 30 * 60 * 1000;
 const SESSION_KEY = "movbox:ad:session";
@@ -27,13 +23,14 @@ interface SessionState {
 }
 
 interface ImpressionLog {
-  // Array of timestamps (ms) for each impression, in this session.
-  // Stale ones (older than SESSION_TTL_MS) are filtered on read.
+  /** Timestamps (ms) for each impression, in this session. */
   list: number[];
+  /** Per-slot count so shouldShowAd can check fast without scanning. */
+  bySlot: Record<string, number>;
 }
 
 interface DismissalLog {
-  // Map of slot-name → timestamp of dismissal. Stale on read.
+  /** slot-name → timestamp of dismissal. Stale on read. */
   bySlot: Record<string, number>;
 }
 
@@ -63,64 +60,63 @@ function ensureSession(): SessionState {
   if (!current || now - current.startedAt > SESSION_TTL_MS) {
     const fresh: SessionState = { startedAt: now };
     writeJson(SESSION_KEY, fresh);
-    writeJson(IMPRESSIONS_KEY, { list: [] } as ImpressionLog);
+    writeJson(IMPRESSIONS_KEY, {
+      list: [],
+      bySlot: {},
+    } as ImpressionLog);
     writeJson(DISMISSALS_KEY, { bySlot: {} } as DismissalLog);
     return fresh;
   }
   return current;
 }
 
-/** How many impressions in the current session for a given slot. */
-export function impressionsForSlot(slot: string): number {
-  ensureSession();
-  const log = readJson<ImpressionLog>(IMPRESSIONS_KEY, { list: [] });
-  const cutoff = Date.now() - SESSION_TTL_MS;
-  const fresh = log.list.filter((t) => t > cutoff);
-  return fresh.length;
-}
-
-/** Total impressions across all slots in this session. */
+/** Total impressions in the current session. */
 export function totalImpressions(): number {
   ensureSession();
-  const log = readJson<ImpressionLog>(IMPRESSIONS_KEY, { list: [] });
+  const log = readJson<ImpressionLog>(IMPRESSIONS_KEY, { list: [], bySlot: {} });
   const cutoff = Date.now() - SESSION_TTL_MS;
   return log.list.filter((t) => t > cutoff).length;
+}
+
+/** How many impressions this session for a given slot. */
+export function impressionsForSlot(slot: AdSlotName): number {
+  ensureSession();
+  const log = readJson<ImpressionLog>(IMPRESSIONS_KEY, { list: [], bySlot: {} });
+  return log.bySlot[slot] ?? 0;
 }
 
 /**
  * Should we show this slot? Returns false if the user already
  * dismissed this slot, hit its per-slot cap, or hit the total cap.
  */
-export function shouldShowAd(slot: keyof typeof AD_FREQUENCY): boolean {
-  // Total cap (across all slots)
+export function shouldShowAd(slot: AdSlotName): boolean {
   if (totalImpressions() >= AD_FREQUENCY.hardCapPerSession) return false;
-  // Per-slot cap (only for the slots that have a per-slot cap)
-  const slotCap = AD_FREQUENCY[slot];
-  if (typeof slotCap === "number") {
-    if (impressionsForSlot(slot as string) >= slotCap) return false;
+  const perSlotCap = AD_FREQUENCY[`${slot}MaxPerSession` as keyof typeof AD_FREQUENCY];
+  if (typeof perSlotCap === "number") {
+    if (impressionsForSlot(slot) >= perSlotCap) return false;
   }
-  // Dismissal
-  if (isDismissed(slot as string)) return false;
+  if (isDismissed(slot)) return false;
   return true;
 }
 
-/** Record an impression (called by the AdSlot when its ad actually rendered). */
-export function recordImpression(slot: string): void {
+/** Record an impression (called by the slot when the ad actually rendered). */
+export function recordImpression(slot: AdSlotName): void {
   ensureSession();
-  const log = readJson<ImpressionLog>(IMPRESSIONS_KEY, { list: [] });
+  const log = readJson<ImpressionLog>(IMPRESSIONS_KEY, { list: [], bySlot: {} });
   log.list.push(Date.now());
+  log.bySlot[slot] = (log.bySlot[slot] ?? 0) + 1;
   writeJson(IMPRESSIONS_KEY, log);
 }
 
 /** Mark a slot as dismissed. Sticky for the rest of the session. */
-export function dismissSlot(slot: string): void {
+export function dismissSlot(slot: AdSlotName): void {
   ensureSession();
   const log = readJson<DismissalLog>(DISMISSALS_KEY, { bySlot: {} });
   log.bySlot[slot] = Date.now();
   writeJson(DISMISSALS_KEY, log);
 }
 
-export function isDismissed(slot: string): boolean {
+export function isDismissed(slot: AdSlotName): boolean {
   ensureSession();
   const log = readJson<DismissalLog>(DISMISSALS_KEY, { bySlot: {} });
   const t = log.bySlot[slot];
@@ -138,3 +134,6 @@ export function _resetAdState(): void {
     /* noop */
   }
 }
+
+// Re-export for convenience so consumers don't need a second import.
+export { AD_SLOT } from "./adcash";

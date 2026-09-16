@@ -5,7 +5,9 @@ import { X, Volume2, VolumeX } from "lucide-react";
 import { ADCASH } from "@/lib/ads/adcash";
 
 /**
- * In-stream video pre-roll via Adcash VAST.
+ * In-stream video pre-roll via Adcash VAST (zone 12171582 — moved
+ * from the old 12111358 on 2026-09-16 when we migrated to the new
+ * Adcash dashboard).
  *
  * Flow:
  *   1. Parent (Player) shows this overlay when the user hits play.

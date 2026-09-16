@@ -3,6 +3,8 @@ import { notFound, redirect } from "next/navigation";
 import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/data";
 import { TVDetailView } from "@/components/detail/TVDetailView";
 import { TVShowJsonLd } from "@/components/seo/MovieJsonLd";
+import { AdcashBanner } from "@/components/ads/AdcashBanner";
+import { AdcashInterstitial } from "@/components/ads/AdcashInterstitial";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
 
 export const revalidate = 3600;
@@ -49,7 +51,11 @@ export default async function TVDetailPage({ params }: TVDetailPageProps) {
   return (
     <>
       <TVShowJsonLd details={details} />
+      <AdcashInterstitial />
       <TVDetailView details={details} related={related} />
+      <div className="mx-auto flex max-w-7xl justify-center px-4 pb-10 md:px-6 lg:px-8">
+        <AdcashBanner className="my-6" />
+      </div>
     </>
   );
 }

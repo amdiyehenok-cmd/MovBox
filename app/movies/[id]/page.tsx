@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/data";
 import { MovieDetailView } from "@/components/detail/MovieDetailView";
+import { AdcashBanner } from "@/components/ads/AdcashBanner";
+import { AdcashInterstitial } from "@/components/ads/AdcashInterstitial";
 import { SITE_NAME } from "@/lib/constants";
 
 export const revalidate = 3600;
@@ -35,5 +37,13 @@ export default async function MovieDetailPage({ params }: MovieDetailPageProps) 
   // Curated "More Like This" — movie-biased, 12 items.
   const related = await getBoxmoviesRelated(details.detailPath, "movie", 12).catch(() => []);
 
-  return <MovieDetailView details={details} related={related} />;
+  return (
+    <>
+      <AdcashInterstitial />
+      <MovieDetailView details={details} related={related} />
+      <div className="mx-auto flex max-w-7xl justify-center px-4 pb-10 md:px-6 lg:px-8">
+        <AdcashBanner className="my-6" />
+      </div>
+    </>
+  );
 }
