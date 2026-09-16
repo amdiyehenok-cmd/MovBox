@@ -1,10 +1,8 @@
 "use client";
 
-import { Fragment, useRef } from "react";
+import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MovieCard } from "./MovieCard";
-import { AdSlot } from "@/components/ads/AdSlot";
-import { AD_FREQUENCY } from "@/lib/ads/adsterra";
 import type { MediaCard } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -17,10 +15,10 @@ interface MovieRowProps {
   /** Class applied to the icon wrapper (for color/styling overrides). */
   iconClassName?: string;
   /**
-   * Override the default ad-injection cadence. Set to 0 to disable
-   * the in-feed sponsored card for this row. The home page sets
-   * this lower on its first row (every 7th) so users see the ad
-   * early, and other rows use the default (every 9th).
+   * Kept for API compatibility — set to 0 to disable in-feed sponsored
+   * cards (the only sane value now that Adcash has no card-format
+   * inventory; the home page places 468×60 display banners between
+   * rows instead).
    */
   adEvery?: number;
 }
@@ -32,6 +30,12 @@ interface MovieRowProps {
  * The per-card href is built inside MovieCard based on the card's own
  * `type` and `id` fields — this row doesn't accept an href prop because
  * functions can't cross the Server→Client Component boundary.
+ *
+ * In-feed sponsored cards used to be injected every Nth card using
+ * Adsterra's smartlink format. Adcash doesn't ship a card-format
+ * inventory, so this row is pure-content now. Ad revenue lives in
+ * the home page's between-row 468×60 banners + the detail-page
+ * interstitial + the site-wide auto-tag rotation.
  */
 export function MovieRow({
   title,
@@ -40,7 +44,7 @@ export function MovieRow({
   className,
   icon,
   iconClassName,
-  adEvery = AD_FREQUENCY.feedCardEvery,
+  adEvery: _adEvery = 0, // intentionally unused; kept for prop compat
 }: MovieRowProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -96,25 +100,13 @@ export function MovieRow({
           ref={scrollerRef}
           className="no-scrollbar flex snap-x snap-mandatory gap-1.5 overflow-x-auto scroll-smooth px-3 pb-2 sm:gap-2 sm:px-5 md:gap-3 md:px-6 lg:gap-3.5 lg:px-8"
         >
-          {items.map((media, i) => {
-            // Inject one in-feed sponsored card every N items.
-            // The AdSlot handles its own frequency cap (no-op when
-            // the user has hit the per-session total of 3).
-            const injectAd = adEvery > 0 && (i + 1) % adEvery === 0 && i < items.length - 1;
-            return (
-              <Fragment key={`${media.type}-${media.id}-${i}`}>
-                <MovieCard
-                  media={media}
-                  priority={i < 4}
-                />
-                {injectAd && (
-                  <div className="w-[100px] shrink-0 sm:w-[128px] md:w-[148px] lg:w-[168px]">
-                    <AdSlot name="feed-card" className="block h-full" />
-                  </div>
-                )}
-              </Fragment>
-            );
-          })}
+          {items.map((media, i) => (
+            <MovieCard
+              key={`${media.type}-${media.id}-${i}`}
+              media={media}
+              priority={i < 4}
+            />
+          ))}
         </div>
       </div>
     </section>
