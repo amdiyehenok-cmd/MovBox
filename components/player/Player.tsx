@@ -314,6 +314,18 @@ export function Player({
     };
   }, []);
 
+  // Mute the main video while the pre-roll ad is playing so the user
+  // doesn't hear the movie audio under the ad. Restore the user's
+  // preferred mute state when the preroll dismisses. This effect
+  // pairs with togglePlay() calling v.play() synchronously — we
+  // intentionally let the main video keep playing in the background
+  // (muted) so there's zero delay when the ad ends.
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = showPreroll ? true : muted;
+  }, [showPreroll, muted]);
+
   // Attach source + subtitles to the <video> element.
   useEffect(() => {
     const video = videoRef.current;
@@ -610,14 +622,31 @@ export function Player({
     const v = videoRef.current;
     if (!v) return;
     if (v.paused) {
-      // First user-initiated play in a session: trigger the pre-roll
-      // ad (if PrerollAd hasn't already run). On the next play (after
-      // pre-roll completes, or skipped/error) we call play() directly.
+      // CRITICAL: call play() SYNCHRONOUSLY inside the click handler.
+      // Chrome's autoplay policy only treats .play() as trusted when
+      // it runs in the same microtask as the user gesture. Any async
+      // hop (Promise.then, setTimeout, useEffect, state setter that
+      // re-renders) breaks the gesture context and the call silently
+      // rejects — the user sees the MP4 bytes load but no playback.
+      //
+      // So: kick off playback FIRST, then schedule the preroll. The
+      // preroll overlay sits on top and (via the showPreroll effect
+      // below) mutes the main video so the user hears the ad, not
+      // the movie.
+      const p = v.play();
+      if (p && typeof p.catch === "function") {
+        p.catch((e) => {
+          // Even inside the gesture, play() can reject (e.g. autoplay
+          // blocked by site permissions, codec mismatch). Surface it
+          // so the user knows what happened.
+          console.warn("[player] play() rejected:", e?.message ?? e);
+          setError("Playback blocked. Tap play to retry.");
+        });
+      }
+      // Then queue the preroll if we haven't shown it this session.
       if (!showPreroll) {
         setShowPreroll(true);
-        return;
       }
-      v.play().catch(() => {});
     } else {
       v.pause();
     }
@@ -625,12 +654,14 @@ export function Player({
 
   const handlePrerollComplete = useCallback(() => {
     setShowPreroll(false);
-    // Start the actual content immediately after the pre-roll.
+    // v.play() was already called in togglePlay inside the user
+    // gesture — no need to call it again from here (which would
+    // otherwise run outside the gesture and get blocked).
+    // Restore mute state since the preroll-effect below will have
+    // muted the main video.
     const v = videoRef.current;
-    if (v && v.paused) {
-      v.play().catch(() => {});
-    }
-  }, []);
+    if (v) v.muted = muted;
+  }, [muted]);
 
   const handleVolumeChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
