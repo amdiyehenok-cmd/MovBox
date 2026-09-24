@@ -622,23 +622,24 @@ export function Player({
     const v = videoRef.current;
     if (!v) return;
     if (v.paused) {
-      // CRITICAL: call play() SYNCHRONOUSLY inside the click handler.
-      // Chrome's autoplay policy only treats .play() as trusted when
-      // it runs in the same microtask as the user gesture. Any async
-      // hop (Promise.then, setTimeout, useEffect, state setter that
-      // re-renders) breaks the gesture context and the call silently
-      // rejects — the user sees the MP4 bytes load but no playback.
+      // Chrome's autoplay policy: a .play() call with audio is only
+      // trusted in the same microtask as the user gesture for sites
+      // with sufficient Media Engagement Index (MEI). New visitors
+      // have no MEI, so .play() silently rejects — even if the call
+      // is inside a click handler. The reliable workaround that
+      // every major player (YouTube, Netflix, Vimeo) uses:
+      //   1. Mute the video first
+      //   2. Call play() (muted playback is always allowed)
+      //   3. Asynchronously unmute once the video actually starts
+      //      (onPlaying event)
       //
-      // So: kick off playback FIRST, then schedule the preroll. The
-      // preroll overlay sits on top and (via the showPreroll effect
-      // below) mutes the main video so the user hears the ad, not
-      // the movie.
+      // We restore the user's previous mute pref on onPlaying. If
+      // they had unmuted, audio comes back when playback starts. If
+      // they had muted, audio stays off.
+      v.muted = true;
       const p = v.play();
       if (p && typeof p.catch === "function") {
         p.catch((e) => {
-          // Even inside the gesture, play() can reject (e.g. autoplay
-          // blocked by site permissions, codec mismatch). Surface it
-          // so the user knows what happened.
           console.warn("[player] play() rejected:", e?.message ?? e);
           setError("Playback blocked. Tap play to retry.");
         });
@@ -746,6 +747,15 @@ export function Player({
     const playableUrl = buildPlayableUrl(activeSource.url, detailPath);
     v.src = playableUrl;
     v.load();
+    // Same muted-autoplay trick as togglePlay — Chrome rejects
+    // .play() with audio on cold sites.
+    v.muted = true;
+    const p = v.play();
+    if (p && typeof p.catch === "function") {
+      p.catch((e) => {
+        console.warn("[player] retry play() rejected:", e?.message ?? e);
+      });
+    }
     onRetry?.();
   }, [activeSource, detailPath, onRetry]);
 
@@ -973,6 +983,14 @@ export function Player({
         onPlaying={() => {
           setLoading(false);
           setPlaying(true);
+          // Muted-then-unmute dance: we muted v before play() to
+          // satisfy Chrome's autoplay policy. Now that playback is
+          // actually running, restore the user's preferred mute state.
+          // (Skipped during preroll — the showPreroll effect keeps it
+          // muted while the ad plays.)
+          if (!showPreroll && !muted && videoRef.current) {
+            videoRef.current.muted = false;
+          }
         }}
         onEnded={(e) => {
           // Mark the entry as fully watched so the Continue Watching
