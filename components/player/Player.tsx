@@ -799,6 +799,30 @@ export function Player({
     (q) => q.id === clampedIndex
   );
 
+  // Persist on tab close / refresh.
+  //
+  // IMPORTANT: this effect MUST stay above the loading/empty-state early
+  // returns further down. A hook that sits below an early return only runs
+  // on renders that reach it, so Player registered 50 hooks on the first
+  // render (which returns early while sources are still loading) and 51 on
+  // the next render (once `activeSource` exists and it falls through).
+  // React saw the hook count grow mid-mount and threw
+  // "Rendered more hooks than during the previous render" (#310), which
+  // dropped the whole watch page into the error boundary. Every rule of
+  // hooks call in this component has to be above every early return.
+  useEffect(() => {
+    function onUnload() {
+      flushHistory();
+    }
+    window.addEventListener("beforeunload", onUnload);
+    window.addEventListener("pagehide", onUnload);
+    return () => {
+      window.removeEventListener("beforeunload", onUnload);
+      window.removeEventListener("pagehide", onUnload);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [detailPath, type, title, season, episode, duration, poster, backdrop, time]);
+
   // -------------------------------------------------------------------------
   // Loading skeleton — shown while sources are still being fetched
   // (prevents the flash of the "No sources" empty state when the page
@@ -900,20 +924,6 @@ export function Player({
     if (t > 0) writeHistoryNow(t);
   }
 
-  // Persist on tab close / refresh.
-  useEffect(() => {
-    function onUnload() {
-      flushHistory();
-    }
-    window.addEventListener("beforeunload", onUnload);
-    window.addEventListener("pagehide", onUnload);
-    return () => {
-      window.removeEventListener("beforeunload", onUnload);
-      window.removeEventListener("pagehide", onUnload);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detailPath, type, title, season, episode, duration, poster, backdrop, time]);
-
   // -------------------------------------------------------------------------
   // Render
   // -------------------------------------------------------------------------
@@ -942,11 +952,13 @@ export function Player({
         // No crossOrigin here on purpose. The stream is served by the
         // thin relay on a different origin, and `crossOrigin="anonymous"`
         // forces the browser to validate CORS headers before it will
-        // play a single frame — one missing/malformed header on the
-        // relay and the whole video hard-fails instead of degrading.
-        // We never read pixels off this element, so CORS buys us
-        // nothing here.
-        preload="metadata"
+        // preload="auto", not "metadata". These MP4s are faststart but
+        // their `moov` atom is ~2.4 MB, so a metadata-sized first request
+        // never completes the index and the video sits at readyState 0
+        // forever with no error. "auto" lets the browser buffer the index
+        // (and start of media) so playback actually begins. Verified
+        // against the relay: `ftyp@0(32) moov@32(2458003)`.
+        preload="auto"
         onClick={togglePlay}
         onPlay={() => {
           setPlaying(true);
