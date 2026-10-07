@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { ExoclickBanner } from "@/components/ads/ExoclickBanner";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
 
 /**
@@ -40,10 +39,6 @@ export default function AdLandingPage() {
             free for you.
           </p>
         </header>
-
-        {/* Inline display zone — no click-out, no redirect — so users
-            can tap the creative CTA and earn us a click-through. */}
-        <ExoclickBanner />
 
         <footer className="mt-12 text-center text-xs text-vanilla-dim">
           <p>

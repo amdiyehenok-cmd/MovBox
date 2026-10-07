@@ -3,6 +3,7 @@ import { Cinzel, Inter } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Footer } from "@/components/layout/Footer";
+import { ExoclickVideoSlider } from "@/components/ads/ExoclickVideoSlider";
 import { SITE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -94,6 +95,10 @@ export default function RootLayout({
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
         <Footer />
         <MobileNav />
+        {/* ExoClick floating video slider (zone 6049852). One instance per
+            document — the library has no dedupe of its own. Self-suppresses
+            on /watch, where the in-stream pre-roll already runs. */}
+        <ExoclickVideoSlider />
       </body>
     </html>
   );

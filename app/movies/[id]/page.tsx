@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getBoxmoviesDetail, getBoxmoviesRelated } from "@/lib/data";
 import { MovieDetailView } from "@/components/detail/MovieDetailView";
-import { ExoclickBanner } from "@/components/ads/ExoclickBanner";
 import { SITE_NAME } from "@/lib/constants";
 
 export const revalidate = 3600;
@@ -39,9 +38,6 @@ export default async function MovieDetailPage({ params }: MovieDetailPageProps) 
   return (
     <>
       <MovieDetailView details={details} related={related} />
-      <div className="mx-auto flex max-w-7xl justify-center px-4 pb-10 md:px-6 lg:px-8">
-        <ExoclickBanner className="my-6" />
-      </div>
     </>
   );
 }

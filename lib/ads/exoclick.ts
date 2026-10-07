@@ -40,19 +40,23 @@ export const EXOCLICK = {
   inStreamVastUrl: "https://s.magsrv.com/v1/vast.php?idz=6049850",
 
   /**
-   * Display (banner) zone, rendered via the generic ad-provider loader
-   * rather than VAST. ExoClick's loader scans the DOM for
-   * `<ins class={displayZoneClass} data-zoneid={displayZoneId}>` and
-   * fills the first one it finds.
+   * VIDEO SLIDER zone (ExoClick `zone_type: 31`) — NOT an inline display
+   * banner. Confirmed from the provider's own console output:
+   *   "Request #0 with 1 zone(s) of type VIDEO SLIDER is being served."
+   *
+   * ad-provider.js builds a `position: fixed` player with its own close
+   * button and only pins `right: 0`, so it anchors to the static position
+   * of the requesting `<ins>`. See ExoclickVideoSlider.tsx for why that
+   * makes placement load-bearing.
    */
-  displayZoneId: "6049852",
-  displayZoneClass: "eas6a97888e31",
+  sliderZoneId: "6049852",
+  sliderZoneClass: "eas6a97888e31",
 
-  /** Generic loader used by the display zone. Async, never blocks paint. */
+  /** Generic loader used by the slider zone. Async, never blocks paint. */
   adProviderScriptUrl: "https://a.magsrv.com/ad-provider.js",
 
-  /** localStorage key holding the timestamp of the banner we last showed. */
-  displayShownKey: "movbox:ad:display:done",
+  /** localStorage key holding the timestamp we last showed the slider. */
+  sliderShownKey: "movbox:ad:slider:done",
 
   /**
    * Domain-verification token. Served as a bare file from

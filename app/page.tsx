@@ -3,7 +3,6 @@ import { MovieRow } from "@/components/home/MovieRow";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { FeatureFooter } from "@/components/home/FeatureFooter";
 import { ContinueWatchingRow } from "@/components/home/ContinueWatchingRow";
-import { ExoclickBanner } from "@/components/ads/ExoclickBanner";
 import { getBoxmoviesHome } from "@/lib/data";
 import type { MediaCard, BoxMediaCard } from "@/lib/types";
 
@@ -70,27 +69,10 @@ export default async function HomePage() {
     });
   }
 
-  // Inject sponsored banners between rows. After row 1 (under the hero),
-  // after row 4 (mid-page), and after row 7 (deep scroll) — three
-  // placements so the user is exposed regardless of scroll depth. The
-  // banner's own session cap still limits it to 1 per session, so
-  // additional <ExoclickBanner /> renders in the same session are
-  // no-ops.
-  const BANNER_AFTER = new Set([1, 4, 7]);
-
   return (
     <div className="bg-bg-deepest">
       {/* Hero */}
       <HeroCarousel items={hero} />
-
-      {/* Top-of-page sponsored banner — ExoClick display zone. The
-          first thing the user sees after the hero, so they can't
-          miss it. Capped to 1 per session; the banner itself hides
-          below `sm` because a banner that doesn't fit the viewport
-          is worse than no banner on mobile. */}
-      <div className="mx-auto flex max-w-7xl justify-center px-4 pt-6 md:px-6 md:pt-8 lg:px-8">
-        <ExoclickBanner />
-      </div>
 
       {/* Continue Watching — only shows if the user has history.
           Reads from localStorage; SSR returns nothing (avoids
@@ -105,23 +87,14 @@ export default async function HomePage() {
         <FeatureFooter />
       </div>
 
-      {/* Themed sections + sponsored banners */}
-      {sections.map((section, idx) => {
-        const rowNum = idx + 1;
-        const showBannerAfter = BANNER_AFTER.has(rowNum);
-        return (
-          <div key={section.key}>
-            <section className="mx-auto max-w-7xl px-4 pt-8 md:px-6 md:pt-10 lg:px-8">
-              <MovieRow title={section.title} items={section.items} />
-            </section>
-            {showBannerAfter && (
-              <div className="mx-auto flex max-w-7xl justify-center px-4 pt-6 md:px-6 lg:px-8">
-                <ExoclickBanner />
-              </div>
-            )}
-          </div>
-        );
-      })}
+      {/* Themed sections */}
+      {sections.map((section) => (
+        <div key={section.key}>
+          <section className="mx-auto max-w-7xl px-4 pt-8 md:px-6 md:pt-10 lg:px-8">
+            <MovieRow title={section.title} items={section.items} />
+          </section>
+        </div>
+      ))}
     </div>
   );
 }
