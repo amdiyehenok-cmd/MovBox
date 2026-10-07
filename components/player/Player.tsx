@@ -421,9 +421,43 @@ export function Player({
     video.addEventListener("loadedmetadata", onLoaded, { once: true });
     video.addEventListener("error", onError, { once: true });
 
+    // ---- Stall watchdog ------------------------------------------------
+    // The relay serving these files is intermittently slow to hand back
+    // the first bytes. Because moov is ~2.4 MB, Chrome stays at
+    // readyState 0 until that whole index arrives, so a slow upstream
+    // read looks identical to "this stream will never play". Left alone
+    // the user gets an indefinite spinner or a bogus "Stream error".
+    //
+    // So: if nothing has decodable metadata within STALL_MS, drop this
+    // source and pull a freshly-signed URL from the parent. Fresh URLs
+    // frequently land on a warm relay path and start instantly, which
+    // is why a manual retry "fixed" it.
+    //
+    // Capped so a genuinely dead stream surfaces a real error instead of
+    // looping forever, and it lives INSIDE this effect rather than as
+    // its own hook (see the early-return warning further up).
+    const STALL_MS = 9000;
+    let settled = false;
+    const stallTimer = setTimeout(() => {
+      if (settled) return;
+      if (video.readyState === 0 && !video.error) {
+        settled = true;
+        onRetry?.();
+      }
+    }, STALL_MS);
+    const markSettled = () => {
+      settled = true;
+      clearTimeout(stallTimer);
+    };
+    video.addEventListener("loadedmetadata", markSettled, { once: true });
+    video.addEventListener("error", markSettled, { once: true });
+
     return () => {
+      clearTimeout(stallTimer);
       video.removeEventListener("loadedmetadata", onLoaded);
       video.removeEventListener("error", onError);
+      video.removeEventListener("loadedmetadata", markSettled);
+      video.removeEventListener("error", markSettled);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSource]);
