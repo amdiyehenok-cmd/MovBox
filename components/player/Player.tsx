@@ -453,6 +453,52 @@ export function Player({
     video.addEventListener("progress", markSettled, { once: true });
     video.addEventListener("error", markSettled, { once: true });
 
+    // ---- Buffered progress indicator -----------------------------------
+    // These MP4s are faststart but carry a ~3MB `moov` index, so the
+    // element sits at readyState 0 for a noticeable beat before it can
+    // show a frame. A lone spinner makes that look broken. We paint the
+    // real buffered fraction instead.
+    //
+    // Deliberately imperative and hook-free: this fires on every
+    // `progress` tick, and a React state update per tick would re-render
+    // the entire control tree several times a second. It also keeps the
+    // hook count pinned at 51 — see the note by the early returns.
+    const paintBuffered = () => {
+      const track = containerRef.current?.querySelector<HTMLElement>(
+        "[data-buffered-track]"
+      );
+      if (!track) return;
+      let pct = 0;
+      // Only meaningful once duration is known. Before that the bar
+      // stays hidden so we never imply a progress figure we can't stand
+      // behind.
+      if (video.duration && Number.isFinite(video.duration) && video.duration > 0) {
+        for (let i = 0; i < video.buffered.length; i++) {
+          if (video.buffered.start(i) <= video.currentTime) {
+            pct = Math.max(pct, video.buffered.end(i));
+          }
+        }
+        pct = Math.min(100, Math.max(0, (pct / video.duration) * 100));
+      }
+      const fill = track.firstElementChild as HTMLElement | null;
+      if (fill) fill.style.width = `${pct.toFixed(1)}%`;
+      track.dataset.state = pct > 0 ? "determinate" : "indeterminate";
+    };
+    const bufferedEvents = [
+      "progress",
+      "loadedmetadata",
+      "loadeddata",
+      "canplay",
+      "canplaythrough",
+      "timeupdate",
+      "waiting",
+      "stalled",
+      "seeking",
+      "seeked",
+    ] as const;
+    bufferedEvents.forEach((e) => video.addEventListener(e, paintBuffered));
+    paintBuffered();
+
     return () => {
       clearTimeout(stallTimer);
       video.removeEventListener("loadedmetadata", onLoaded);
@@ -461,6 +507,7 @@ export function Player({
       video.removeEventListener("loadeddata", markSettled);
       video.removeEventListener("progress", markSettled);
       video.removeEventListener("error", markSettled);
+      bufferedEvents.forEach((e) => video.removeEventListener(e, paintBuffered));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeSource]);
@@ -1074,8 +1121,21 @@ export function Player({
       )}
 
       {loading && !error && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-accent-bright" />
+          {/* Real buffered fraction, painted imperatively by the
+              activeSource effect. Stays invisible until duration is
+              known and at least one byte is buffered. */}
+          <div
+            data-buffered-track
+            data-state="indeterminate"
+            role="progressbar"
+            aria-label="Buffering"
+            className="h-1 w-40 max-w-[60%] overflow-hidden rounded-full bg-white/15 opacity-0 transition-opacity duration-300 data-[state=determinate]:opacity-100 sm:w-56"
+          >
+            <div className="h-full w-0 rounded-full bg-accent-bright transition-[width] duration-300 ease-out" />
+          </div>
+          <p className="text-[11px] font-medium text-cream/70">Buffering…</p>
         </div>
       )}
 
