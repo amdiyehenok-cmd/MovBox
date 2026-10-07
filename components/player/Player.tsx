@@ -314,17 +314,14 @@ export function Player({
     };
   }, []);
 
-  // Mute the main video while the pre-roll ad is playing so the user
-  // doesn't hear the movie audio under the ad. Restore the user's
-  // preferred mute state when the preroll dismisses. This effect
-  // pairs with togglePlay() calling v.play() synchronously — we
-  // intentionally let the main video keep playing in the background
-  // (muted) so there's zero delay when the ad ends.
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = showPreroll ? true : muted;
-  }, [showPreroll, muted]);
+  // NOTE: the pre-roll mute behaviour lives in the `[muted, volume,
+  // showPreroll]` effect below (see the comment there). It used to be
+  // its own effect here, but adding a 52nd hook to this component
+  // crashed the page for anyone holding a cached 51-hook chunk —
+  // React threw #310 ("Rendered more hooks than during the previous
+  // render") and the whole watch page fell into the error boundary.
+  // Keep this component's hook count stable; merge new behaviour into
+  // existing effects instead of adding new ones.
 
   // Attach source + subtitles to the <video> element.
   useEffect(() => {
@@ -483,12 +480,16 @@ export function Player({
     video.playbackRate = playbackRate;
   }, [playbackRate]);
 
+  // Mute/volume sync. While the pre-roll ad is on screen the main
+  // video keeps playing silently underneath, so the user hears the ad
+  // rather than the movie; the moment the ad dismisses we restore
+  // their real mute preference.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.muted = muted;
+    video.muted = showPreroll ? true : muted;
     video.volume = volume;
-  }, [muted, volume]);
+  }, [muted, volume, showPreroll]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -739,25 +740,18 @@ export function Player({
 
   const setRate = useCallback((rate: number) => setPlaybackRate(rate), []);
 
+  // Retry has to RE-FETCH, not replay. The relay hands out MP4 URLs
+  // carrying a short-lived upstream signature (`?sign=…&t=…`) that
+  // expires in roughly 12 minutes. Re-assigning the same `activeSource
+  // .url` on retry just re-requests the dead URL, so the user gets an
+  // infinite retry → "Stream error" loop. Asking the parent to refresh
+  // sources mints a brand-new signed URL, which the `activeSource`
+  // effect then attaches automatically.
   const handleRetry = useCallback(() => {
     setError(null);
     setLoading(true);
-    const v = videoRef.current;
-    if (!v || !activeSource) return;
-    const playableUrl = buildPlayableUrl(activeSource.url, detailPath);
-    v.src = playableUrl;
-    v.load();
-    // Same muted-autoplay trick as togglePlay — Chrome rejects
-    // .play() with audio on cold sites.
-    v.muted = true;
-    const p = v.play();
-    if (p && typeof p.catch === "function") {
-      p.catch((e) => {
-        console.warn("[player] retry play() rejected:", e?.message ?? e);
-      });
-    }
     onRetry?.();
-  }, [activeSource, detailPath, onRetry]);
+  }, [onRetry]);
 
   // -------------------------------------------------------------------------
   // Derived
@@ -945,7 +939,14 @@ export function Player({
         poster={poster ?? undefined}
         className="h-full w-full bg-black"
         playsInline
-        crossOrigin="anonymous"
+        // No crossOrigin here on purpose. The stream is served by the
+        // thin relay on a different origin, and `crossOrigin="anonymous"`
+        // forces the browser to validate CORS headers before it will
+        // play a single frame — one missing/malformed header on the
+        // relay and the whole video hard-fails instead of degrading.
+        // We never read pixels off this element, so CORS buys us
+        // nothing here.
+        preload="metadata"
         onClick={togglePlay}
         onPlay={() => {
           setPlaying(true);
