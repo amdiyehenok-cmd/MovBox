@@ -9,11 +9,10 @@ import { createClient } from "@supabase/supabase-js";
  * key missing, etc.), we just return 200 and silently no-op — the
  * client-side localStorage cap still works.
  *
- * This is the server-side mirror of `lib/ads/frequency.ts`. The
- * client uses localStorage (fast, no network); we use this to
- * enforce the cap for signed-in users across devices.
+ * Callers: components/ads/ExoclickBanner.tsx (slot "display") and
+ * components/ads/PrerollAd.tsx (slot "in-stream").
  *
- * Body: { slot: "feed-card" | "social-bar", sessionId?: string }
+ * Body: { slot: string, sessionId?: string }
  * Returns: { ok, count, capped } where count = this user's
  * impressions in the last 30 min, capped = whether we should show
  * more ads to this user.

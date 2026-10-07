@@ -2,28 +2,38 @@
 
 import { useEffect, useRef, useState } from "react";
 import { X, Volume2, VolumeX } from "lucide-react";
-import { ADCASH } from "@/lib/ads/adcash";
+import { EXOCLICK, track } from "@/lib/ads/exoclick";
 
 /**
- * In-stream video pre-roll via Adcash VAST (zone 12171582 — moved
- * from the old 12111358 on 2026-09-16 when we migrated to the new
- * Adcash dashboard).
+ * In-stream video pre-roll via ExoClick VAST (zone 6049850).
  *
  * Flow:
- *   1. Parent (Player) shows this overlay when the user hits play.
- *   2. We fetch the VAST XML from the Adcash tag URL.
- *   3. We parse out the first <MediaFile> URL that our browser
- *      supports (mp4/webm).
- *   4. We play the ad full-bleed on top of the player.
- *   5. When the ad ends (or the user skips after 5s), we call
- *      onComplete and the parent starts the real content.
+ *   1. Parent (Player) mounts this overlay on the first user-initiated
+ *      play of a session.
+ *   2. We fetch the VAST XML from the ExoClick tag URL and parse it.
+ *   3. We pick the first <MediaFile> our browser can actually decode
+ *      (mp4 preferred, then webm).
+ *   4. We fire the VAST <Impression> tracker and play the ad full-bleed
+ *      over the player, firing each <Tracking event="progress"> beacon
+ *      as the playhead crosses its offset.
+ *   5. Clicking the ad opens the <ClickThrough> URL in a new tab.
+ *   6. When the ad ends — or the user skips once the VAST skipoffset is
+ *      reached — we call onComplete and the parent starts the content.
  *
- * Frequency cap: at most 1 pre-roll per session. Stored in
+ * Failure policy: an ad must never block the content. Any error path
+ * (fetch failed, no playable media, media decode error) fires the VAST
+ * <Error> tracker and then calls onComplete shortly after.
+ *
+ * Frequency cap: at most 1 pre-roll per 30-minute session, stored in
  * localStorage under "movbox:ad:preroll:done" (timestamp).
  */
 
 const SESSION_TTL_MS = 30 * 60 * 1000;
-const SKIP_AFTER_S = 5;
+/** Used only when the VAST response omits a skipoffset. */
+const DEFAULT_SKIP_AFTER_S = 5;
+/** VAST error codes we can actually report. */
+const VAST_ERR_NO_MEDIA = 101;
+const VAST_ERR_NO_FILE = 100;
 
 interface PrerollAdProps {
   /** Called when the ad finishes or is skipped. */
@@ -33,6 +43,21 @@ interface PrerollAdProps {
 interface VastMediaFile {
   url: string;
   type: string;
+}
+
+interface VastTracker {
+  url: string;
+  /** Seconds into the ad at which this progress beacon fires. */
+  offsetS: number;
+}
+
+interface VastCreative {
+  mediaFiles: VastMediaFile[];
+  impressions: string[];
+  clickThrough: string | null;
+  progress: VastTracker[];
+  errorTrackers: string[];
+  skipOffsetS: number | null;
 }
 
 function canPlayType(type: string): boolean {
@@ -54,26 +79,86 @@ function pickPlayableMedia(files: VastMediaFile[]): string | null {
   return null;
 }
 
-function parseVast(xmlText: string): VastMediaFile[] {
-  if (typeof window === "undefined") return [];
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xmlText, "application/xml");
-  if (doc.querySelector("parsererror")) return [];
-  const files: VastMediaFile[] = [];
-  doc.querySelectorAll("MediaFile").forEach((node) => {
-    const url = node.textContent?.trim() ?? "";
-    const type = node.getAttribute("type") ?? "video/mp4";
-    if (url) files.push({ url, type });
-  });
-  // Also try the CDATA-wrapped inner <MediaFile> children
-  if (files.length === 0) {
-    doc.querySelectorAll("MediaFiles > MediaFile").forEach((node) => {
-      const url = node.textContent?.trim() ?? "";
-      const type = node.getAttribute("type") ?? "video/mp4";
-      if (url) files.push({ url, type });
-    });
+/** "HH:MM:SS(.mmm)" → seconds. Returns null on anything unparseable. */
+function parseVastTime(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const parts = value.trim().split(":");
+  if (parts.length !== 3) return null;
+  const nums = parts.map((p) => Number(p));
+  if (!nums.every((n) => Number.isFinite(n))) return null;
+  const [h, m, s] = nums;
+  return h * 3600 + m * 60 + s;
+}
+
+/** Read a CDATA-or-text element's trimmed content. */
+function text(node: Element | null | undefined): string {
+  return node?.textContent?.trim() ?? "";
+}
+
+/**
+ * Parse the first <Linear> creative out of a VAST document.
+ *
+ * Returns null when the response isn't parseable VAST or has no Linear
+ * creative at all (e.g. an ad blocker returned an empty document).
+ */
+function parseVast(xmlText: string): VastCreative | null {
+  if (typeof window === "undefined") return null;
+  let doc: Document;
+  try {
+    doc = new DOMParser().parseFromString(xmlText, "application/xml");
+  } catch {
+    return null;
   }
-  return files;
+  if (doc.querySelector("parsererror")) return null;
+
+  const linear = doc.querySelector("Linear");
+  if (!linear) return null;
+
+  const mediaFiles: VastMediaFile[] = [];
+  linear.querySelectorAll("MediaFile").forEach((node) => {
+    const url = text(node);
+    if (url) {
+      mediaFiles.push({ url, type: node.getAttribute("type") ?? "video/mp4" });
+    }
+  });
+
+  const impressions: string[] = [];
+  doc.querySelectorAll("Impression").forEach((node) => {
+    const url = text(node);
+    if (url) impressions.push(url);
+  });
+
+  const clickThrough = text(linear.querySelector("VideoClicks > ClickThrough")) || null;
+
+  const progress: VastTracker[] = [];
+  linear
+    .querySelectorAll('TrackingEvents > Tracking[event="progress"]')
+    .forEach((node) => {
+      const url = text(node);
+      const offsetS = parseVastTime(node.getAttribute("offset"));
+      if (url && offsetS !== null) progress.push({ url, offsetS });
+    });
+  progress.sort((a, b) => a.offsetS - b.offsetS);
+
+  const errorTrackers: string[] = [];
+  doc.querySelectorAll("Error").forEach((node) => {
+    const url = text(node);
+    if (url) errorTrackers.push(url);
+  });
+
+  return {
+    mediaFiles,
+    impressions,
+    clickThrough,
+    progress,
+    errorTrackers,
+    skipOffsetS: parseVastTime(linear.getAttribute("skipoffset")),
+  };
+}
+
+/** Substitute the [ERRORCODE] placeholder every network uses. */
+function fireErrorTrackers(urls: string[], code: number): void {
+  for (const raw of urls) track(raw.replace(/\[ERRORCODE\]/g, String(code)));
 }
 
 function wasShownRecently(): boolean {
@@ -97,6 +182,20 @@ function markShown(): void {
   }
 }
 
+/** Best-effort server-side impression log; never blocks playback. */
+function reportImpression(): void {
+  try {
+    void fetch("/api/ads/impression", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ slot: "in-stream" }),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    /* noop */
+  }
+}
+
 export function PrerollAd({ onComplete }: PrerollAdProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [status, setStatus] = useState<
@@ -105,8 +204,16 @@ export function PrerollAd({ onComplete }: PrerollAdProps) {
   const [elapsed, setElapsed] = useState(0);
   const [muted, setMuted] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [skipAfterS, setSkipAfterS] = useState(DEFAULT_SKIP_AFTER_S);
 
-  // Fetch + parse the VAST tag, then start the ad.
+  // Parsed VAST data, kept in refs so the effects below don't need it as
+  // a dependency (and so changing it never re-runs the fetch).
+  const clickThroughRef = useRef<string | null>(null);
+  const progressRef = useRef<VastTracker[]>([]);
+  const firedProgressRef = useRef<Set<string>>(new Set());
+  const errorTrackersRef = useRef<string[]>([]);
+
+  // Fetch + parse the VAST tag, fire the impression, then start the ad.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -117,16 +224,38 @@ export function PrerollAd({ onComplete }: PrerollAdProps) {
           onComplete();
           return;
         }
-        const res = await fetch(ADCASH.inStreamVastUrl, {
-          credentials: "omit",
+
+        // credentials: "include" so ExoClick's own zone-cap cookie
+        // round-trips and they can apply server-side capping. Their
+        // response sets Access-Control-Allow-Credentials specifically
+        // to allow this.
+        const res = await fetch(EXOCLICK.inStreamVastUrl, {
+          credentials: "include",
         });
         if (!res.ok) throw new Error(`VAST fetch ${res.status}`);
         const xml = await res.text();
         if (cancelled) return;
-        const files = parseVast(xml);
-        const url = pickPlayableMedia(files);
-        if (!url) throw new Error("No playable media in VAST");
-        // Attach the URL to the video element via state.
+
+        const creative = parseVast(xml);
+        if (!creative) throw new Error("Unparseable VAST");
+        errorTrackersRef.current = creative.errorTrackers;
+
+        const url = pickPlayableMedia(creative.mediaFiles);
+        if (!url) {
+          fireErrorTrackers(creative.errorTrackers, VAST_ERR_NO_FILE);
+          throw new Error("No playable media in VAST");
+        }
+
+        clickThroughRef.current = creative.clickThrough;
+        progressRef.current = creative.progress;
+        firedProgressRef.current = new Set();
+        setSkipAfterS(creative.skipOffsetS ?? DEFAULT_SKIP_AFTER_S);
+
+        // Count the impression before the first frame so a user who
+        // skips instantly still registers.
+        for (const imp of creative.impressions) track(imp);
+        reportImpression();
+
         setStatus("playing");
         requestAnimationFrame(() => {
           if (videoRef.current) {
@@ -152,20 +281,44 @@ export function PrerollAd({ onComplete }: PrerollAdProps) {
     };
   }, [onComplete]);
 
-  // Tick the elapsed counter so the skip button enables at SKIP_AFTER_S.
+  // Tick the elapsed counter so the skip button unlocks at the VAST
+  // skipoffset. The counter is wall-clock, not media-time, so a stalled
+  // ad still becomes skippable.
   useEffect(() => {
     if (status !== "playing") return;
+    setElapsed(0);
     const start = Date.now();
     const t = setInterval(() => {
       const e = (Date.now() - start) / 1000;
       setElapsed(e);
-      if (e >= SKIP_AFTER_S) clearInterval(t);
+      if (e >= skipAfterS) clearInterval(t);
     }, 250);
     return () => clearInterval(t);
+  }, [status, skipAfterS]);
+
+  // Fire each progress beacon once as the playhead crosses its offset.
+  useEffect(() => {
+    if (status !== "playing") return;
+    const video = videoRef.current;
+    if (!video) return;
+    const onTimeUpdate = () => {
+      const fired = firedProgressRef.current;
+      for (const tracker of progressRef.current) {
+        if (fired.has(tracker.url)) continue;
+        // 0.25s of slack: the browser fires timeupdate on a coarse
+        // schedule and can land just short of the exact offset.
+        if (video.currentTime + 0.25 >= tracker.offsetS) {
+          fired.add(tracker.url);
+          track(tracker.url);
+        }
+      }
+    };
+    video.addEventListener("timeupdate", onTimeUpdate);
+    return () => video.removeEventListener("timeupdate", onTimeUpdate);
   }, [status]);
 
   function handleSkip() {
-    if (elapsed < SKIP_AFTER_S) return;
+    if (elapsed < skipAfterS) return;
     setStatus("skipped");
     onComplete();
   }
@@ -175,12 +328,29 @@ export function PrerollAd({ onComplete }: PrerollAdProps) {
     onComplete();
   }
 
+  function handleMediaError() {
+    fireErrorTrackers(errorTrackersRef.current, VAST_ERR_NO_MEDIA);
+    setStatus("error");
+    setErrorMsg("Video failed");
+    setTimeout(() => onComplete(), 1500);
+  }
+
+  function handleClick() {
+    const url = clickThroughRef.current;
+    if (!url) return;
+    // The ClickThrough URL is itself the click tracker (it 302s to the
+    // advertiser), so simply opening it records the click.
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
   function toggleMute() {
     const v = videoRef.current;
     if (!v) return;
     v.muted = !v.muted;
     setMuted(v.muted);
   }
+
+  const canSkip = elapsed >= skipAfterS;
 
   return (
     <div
@@ -194,12 +364,9 @@ export function PrerollAd({ onComplete }: PrerollAdProps) {
         playsInline
         muted={muted}
         onEnded={handleEnded}
-        onError={() => {
-          setStatus("error");
-          setErrorMsg("Video failed");
-          setTimeout(() => onComplete(), 1500);
-        }}
-        className="h-full w-full bg-black object-contain"
+        onError={handleMediaError}
+        onClick={handleClick}
+        className="h-full w-full cursor-pointer bg-black object-contain"
       />
 
       {/* Top bar: ad label + skip button */}
@@ -224,17 +391,15 @@ export function PrerollAd({ onComplete }: PrerollAdProps) {
           <button
             type="button"
             onClick={handleSkip}
-            disabled={elapsed < SKIP_AFTER_S}
+            disabled={!canSkip}
             aria-label={
-              elapsed < SKIP_AFTER_S
-                ? `Skip in ${Math.ceil(SKIP_AFTER_S - elapsed)}s`
-                : "Skip advertisement"
+              canSkip
+                ? "Skip advertisement"
+                : `Skip in ${Math.ceil(skipAfterS - elapsed)}s`
             }
             className="inline-flex h-9 items-center gap-1.5 rounded-full bg-black/70 px-3 text-xs font-semibold text-white backdrop-blur transition-colors hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {elapsed < SKIP_AFTER_S
-              ? `Skip in ${Math.ceil(SKIP_AFTER_S - elapsed)}s`
-              : "Skip Ad"}
+            {canSkip ? "Skip Ad" : `Skip in ${Math.ceil(skipAfterS - elapsed)}s`}
             <X className="h-3.5 w-3.5" />
           </button>
         </div>

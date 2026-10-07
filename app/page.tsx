@@ -3,7 +3,7 @@ import { MovieRow } from "@/components/home/MovieRow";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { FeatureFooter } from "@/components/home/FeatureFooter";
 import { ContinueWatchingRow } from "@/components/home/ContinueWatchingRow";
-import { AdcashBanner } from "@/components/ads/AdcashBanner";
+import { ExoclickBanner } from "@/components/ads/ExoclickBanner";
 import { getBoxmoviesHome } from "@/lib/data";
 import type { MediaCard, BoxMediaCard } from "@/lib/types";
 
@@ -73,9 +73,9 @@ export default async function HomePage() {
   // Inject sponsored banners between rows. After row 1 (under the hero),
   // after row 4 (mid-page), and after row 7 (deep scroll) — three
   // placements so the user is exposed regardless of scroll depth. The
-  // AdcashBanner's frequency cap still limits to 1 banner per session
-  // (displayMaxPerSession=1 in lib/ads/adcash.ts), so additional
-  // <AdcashBanner /> renders in the same session are no-ops.
+  // banner's own session cap still limits it to 1 per session, so
+  // additional <ExoclickBanner /> renders in the same session are
+  // no-ops.
   const BANNER_AFTER = new Set([1, 4, 7]);
 
   return (
@@ -83,13 +83,13 @@ export default async function HomePage() {
       {/* Hero */}
       <HeroCarousel items={hero} />
 
-      {/* Top-of-page sponsored banner — Adcash 468×60 (12171626). The
+      {/* Top-of-page sponsored banner — ExoClick display zone. The
           first thing the user sees after the hero, so they can't
-          miss it. Capped to 1 per session via frequency.ts; the
-          banner itself hides below `sm` (mobile users see Adcash's
-          pop/in-page push rotation instead). */}
+          miss it. Capped to 1 per session; the banner itself hides
+          below `sm` because a banner that doesn't fit the viewport
+          is worse than no banner on mobile. */}
       <div className="mx-auto flex max-w-7xl justify-center px-4 pt-6 md:px-6 md:pt-8 lg:px-8">
-        <AdcashBanner />
+        <ExoclickBanner />
       </div>
 
       {/* Continue Watching — only shows if the user has history.
@@ -116,7 +116,7 @@ export default async function HomePage() {
             </section>
             {showBannerAfter && (
               <div className="mx-auto flex max-w-7xl justify-center px-4 pt-6 md:px-6 lg:px-8">
-                <AdcashBanner />
+                <ExoclickBanner />
               </div>
             )}
           </div>

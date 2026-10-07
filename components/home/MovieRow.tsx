@@ -16,9 +16,9 @@ interface MovieRowProps {
   iconClassName?: string;
   /**
    * Kept for API compatibility — set to 0 to disable in-feed sponsored
-   * cards (the only sane value now that Adcash has no card-format
-   * inventory; the home page places 468×60 display banners between
-   * rows instead).
+   * cards (neither Adsterra nor ExoClick offers a native card-format
+   * inventory; the home page places display banners between rows
+   * instead).
    */
   adEvery?: number;
 }
@@ -32,10 +32,10 @@ interface MovieRowProps {
  * functions can't cross the Server→Client Component boundary.
  *
  * In-feed sponsored cards used to be injected every Nth card using
- * Adsterra's smartlink format. Adcash doesn't ship a card-format
- * inventory, so this row is pure-content now. Ad revenue lives in
- * the home page's between-row 468×60 banners + the detail-page
- * interstitial + the site-wide auto-tag rotation.
+ * Adsterra's smartlink format. Neither Adsterra nor ExoClick ships a
+ * card-format inventory, so this row is pure-content now. Ad revenue
+ * lives in the ExoClick in-stream pre-roll (watch page) + the display
+ * banner between home-page rows.
  */
 export function MovieRow({
   title,

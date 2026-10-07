@@ -246,9 +246,9 @@ export function Player({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPiP, setIsPiP] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(null);
-  // Pre-roll in-stream video ad via Adcash VAST. Shows once per
-  // session on the first user-initiated play. The component handles
-  // its own session cap (localStorage).
+  // Pre-roll in-stream video ad via ExoClick VAST (zone 6049850).
+  // Shows once per session on the first user-initiated play. The
+  // component handles its own session cap (localStorage).
   const [showPreroll, setShowPreroll] = useState(false);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -1058,7 +1058,7 @@ export function Player({
         }}
       />
 
-      {/* In-stream video pre-roll (Adcash VAST). Sits over the player
+      {/* In-stream video pre-roll (ExoClick VAST). Sits over the player
           on the first user-initiated play of a session, then dismisses
           and the actual content starts. The Player keeps its own
           session cap via the component's localStorage check. */}

@@ -3,7 +3,6 @@ import { Cinzel, Inter } from "next/font/google";
 import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Footer } from "@/components/layout/Footer";
-import { AdcashLoader } from "@/components/ads/AdcashLoader";
 import { SITE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -95,10 +94,6 @@ export default function RootLayout({
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
         <Footer />
         <MobileNav />
-        {/* Adcash — fresh 2026-09-16 migration. Site-wide rotation of
-            auto-tag (imvnzkhuu8) + video slider (12171586). Loaded
-            after-interactive so first paint is never blocked. */}
-        <AdcashLoader />
       </body>
     </html>
   );
