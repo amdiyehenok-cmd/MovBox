@@ -1,0 +1,287 @@
+/**
+ * ExoClick NATIVE / recommendation widget (zone 6053376) — luxury dark theme.
+ *
+ * Load this from our own bundle, inside a wrapper element carrying
+ * id="movbox-native-ads". It does NOT work pasted into ExoClick's
+ * dashboard CSS box — see the specificity note below.
+ *
+ * ── Why it cannot live in the ExoClick dashboard ──────────────────────
+ * The widget injects its own stylesheet twice. The second pass is
+ * !important AND id-scoped, e.g.
+ *
+ *   #msg-native-widget-6053376-fNqra.msg-native-widget
+ *     .msg-native-widget-item-title {
+ *       color: black !important;
+ *       font-weight: normal !important;
+ *   }
+ *
+ * That is specificity (1,2,0). When two declarations are both
+ * !important, specificity decides — so a plain class selector (0,1,0)
+ * pasted into the dashboard loses, and the dashboard gives us no way to
+ * add an ID. Maximum reachable without an ID is (0,N,0), which can never
+ * beat (1,2,0). Dead end.
+ *
+ * The fix is to own a wrapper ID and sit at (1,3,0):
+ *   #movbox-native-ads .msg-native-widget .msg-native-widget-item-content
+ *     .msg-native-widget-item-title  ->  (1,3,0)  wins outright.
+ *
+ * The widget also mints a fresh random id per load (fNqra above), so
+ * targeting its id is not an option either way. Our wrapper is stable.
+ *
+ * ── What this changes ────────────────────────────────────────────────
+ * ExoClick's default native widget is built for a light page: a
+ * translucent WHITE content slab (rgba(255,255,255,.6)) with pure-black
+ * text and #555 body copy. On our near-black palette that is unreadable
+ * and looks broken. This re-skins it onto the Movbox tokens — ink/burgundy
+ * surfaces, cream type, a bottom-up scrim so the image stays visible,
+ * and an accent glow on hover.
+ *
+ * Palette: bg-deepest #080606 · surface #140d0e · surface-elevated #1b1113
+ *          brand #800020 · accent #a42e4a · accent-bright #d7707c
+ *          cream #fffdd0 · text-secondary #b9a9a5 · text-muted #766a68
+ *          border #302022 · border-strong #4a3538
+ */
+
+/* ── Root ───────────────────────────────────────────────────────────── */
+/* Explicit stack, NOT `inherit`. ExoClick sets Arial on the widget root
+   itself, so inheriting from it just resolves back to Arial. --font-inter
+   is the variable next/font/google gives us in app/layout.tsx. */
+#movbox-native-ads .msg-native-widget,
+#movbox-native-ads .exo-native-widget {
+  background-color: transparent !important;
+  font-family: var(--font-inter), Inter, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* "Ads by ..." / AdChoices. ExoClick force-`initial`s width and float. */
+#movbox-native-ads .msg-native-widget .msg-native-widget-header {
+  width: 100% !important;
+  float: none !important;
+  text-align: right !important;
+  white-space: nowrap !important;
+  padding: 0 0 6px !important;
+  line-height: 14px !important;
+  font-size: 10px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  opacity: 0.45 !important;
+  transition: opacity 200ms ease !important;
+}
+#movbox-native-ads .msg-native-widget:hover .msg-native-widget-header {
+  opacity: 0.8 !important;
+}
+#movbox-native-ads .msg-native-widget .msg-native-widget-header a {
+  color: #766a68 !important;
+  text-decoration: none !important;
+}
+
+/* ── Grid: 2-up, never 3 cramped columns ────────────────────────────── */
+#movbox-native-ads .msg-native-widget .msg-native-widget-outer-container {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  height: auto !important;
+  align-content: start !important;
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+#movbox-native-ads .msg-native-widget .msg-native-widget-outer-container
+  .msg-native-widget-item-container {
+  overflow: visible !important;
+  position: relative !important;
+  flex-basis: auto !important;
+  padding: 0 !important;
+  min-width: 0 !important;
+}
+
+/* ── Card ───────────────────────────────────────────────────────────── */
+#movbox-native-ads .msg-native-widget .msg-native-widget-item {
+  display: block !important;
+  position: relative !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  background: #140d0e !important;
+  border: 1px solid #302022 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
+  text-decoration: none !important;
+  transition:
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 220ms ease,
+    box-shadow 220ms ease !important;
+}
+#movbox-native-ads .msg-native-widget .msg-native-widget-item:hover {
+  transform: translateY(-2px) !important;
+  border-color: #a42e4a !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(164, 46, 74, 0.4) !important;
+}
+#movbox-native-ads .msg-native-widget .msg-native-widget-item:focus-visible {
+  outline: 2px solid #d7707c !important;
+  outline-offset: 2px !important;
+}
+
+/* ── Image ──────────────────────────────────────────────────────────── */
+#movbox-native-ads .msg-native-widget .msg-native-widget-item-image-wrapper,
+#movbox-native-ads .msg-native-widget .msg-native-widget-item-image,
+#movbox-native-ads .msg-native-widget .msg-native-widget-item-image-ratio {
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  background: #1b1113 !important;
+}
+#movbox-native-ads .msg-native-widget .msg-native-widget-item-image img {
+  display: block !important;
+  width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  object-fit: cover !important;
+  filter: saturate(0.92) contrast(1.04) !important;
+  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+#movbox-native-ads .msg-native-widget .msg-native-widget-item:hover
+  .msg-native-widget-item-image img {
+  transform: scale(1.05) !important;
+}
+
+/* ── Text panel: bottom-up scrim instead of a white slab ────────────── */
+#movbox-native-ads .msg-native-widget .msg-native-widget-item-content {
+  position: absolute !important;
+  inset: auto 0 0 0 !important;
+  top: auto !important;
+  right: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  padding: 24px 10px 9px !important;
+  margin: 0 !important;
+  display: block !important;
+  text-align: left !important;
+  background: linear-gradient(
+    to top,
+    rgba(8, 6, 6, 0.97) 0%,
+    rgba(8, 6, 6, 0.9) 48%,
+    rgba(8, 6, 6, 0) 100%
+  ) !important;
+  transition: background 220ms ease !important;
+}
+#movbox-native-ads .msg-native-widget .msg-native-widget-item:hover
+  .msg-native-widget-item-content {
+  background: linear-gradient(
+    to top,
+    rgba(37, 24, 32, 0.98) 0%,
+    rgba(20, 13, 14, 0.94) 55%,
+    rgba(20, 13, 14, 0) 100%
+  ) !important;
+}
+
+/* ── Title ──────────────────────────────────────────────────────────── */
+/* (1,3,0) — beats ExoClick's (1,2,0) !important. */
+#movbox-native-ads .msg-native-widget .msg-native-widget-item-content
+  .msg-native-widget-item-title {
+  color: #fffdd0 !important;
+  font-family: inherit !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  letter-spacing: -0.01em !important;
+  text-align: left !important;
+  text-decoration: none !important;
+  text-shadow: none !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 0 3px !important;
+  padding: 0 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+#movbox-native-ads .msg-native-widget .msg-native-widget-item-content
+  .msg-native-widget-item-title:hover {
+  color: #fffdd0 !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+/* Description copy. ExoClick ships this display:none; keep it hidden
+   unless a creative actually sends it. */
+#movbox-native-ads .msg-native-widget .msg-native-widget-item-content
+  .msg-native-widget-item-text {
+  display: none !important;
+  border: 0 none transparent !important;
+  color: #b9a9a5 !important;
+}
+
+/* Advertiser line. */
+#movbox-native-ads .msg-native-widget .msg-native-widget-item-content
+  .msg-native-widget-item-brand {
+  color: #766a68 !important;
+  font-family: inherit !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  text-align: left !important;
+  text-decoration: none !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 0.85 !important;
+  transition: color 200ms ease !important;
+}
+#movbox-native-ads .msg-native-widget .msg-native-widget-item:hover
+  .msg-native-widget-item-content .msg-native-widget-item-brand {
+  color: #e6a0a8 !important;
+}
+
+/* ── Outer inline-flex shim ExoClick emits with a hashed class ──────── */
+#movbox-native-ads > div {
+  margin: 0 !important;
+  border-radius: 12px !important;
+  border: 1px solid #302022 !important;
+  background: transparent !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+#movbox-native-ads > div > div[data-uid] {
+  height: auto !important;
+  width: 100% !important;
+  cursor: pointer !important;
+  border: 0 !important;
+  background: transparent !important;
+  max-width: 100% !important;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  #movbox-native-ads .msg-native-widget .msg-native-widget-outer-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+  #movbox-native-ads .msg-native-widget .msg-native-widget-item-content
+    .msg-native-widget-item-title {
+    font-size: 11.5px !important;
+  }
+}
+
+/* ── Respect reduced motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  #movbox-native-ads .msg-native-widget .msg-native-widget-item,
+  #movbox-native-ads .msg-native-widget .msg-native-widget-item-image img,
+  #movbox-native-ads .msg-native-widget .msg-native-widget-item-content,
+  #movbox-native-ads .msg-native-widget .msg-native-widget-header {
+    transition: none !important;
+  }
+  #movbox-native-ads .msg-native-widget .msg-native-widget-item:hover {
+    transform: none !important;
+  }
+  #movbox-native-ads .msg-native-widget .msg-native-widget-item:hover
+    .msg-native-widget-item-image img {
+    transform: none !important;
+  }
+}
