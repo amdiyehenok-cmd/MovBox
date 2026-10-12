@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Footer } from "@/components/layout/Footer";
 import { ExoclickVideoSlider } from "@/components/ads/ExoclickVideoSlider";
+import { ExoclickNative } from "@/components/ads/ExoclickNative";
 import { SITE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -90,9 +91,46 @@ export default function RootLayout({
       lang="en"
       className={cn(inter.variable, cinzel.variable, "h-full antialiased")}
     >
+      <head>
+        {/*
+          Client Hints delegation for ExoClick (s.magsrv.com).
+
+          Chromium's UA-CH is allowlisted per origin. Ad platforms need
+          accurate Sec-CH-UA-* values for device/bot detection and fraud
+          filtering, and the standard mechanism is to opt an origin in via
+          this meta tag. Required by their in-stream and display zones;
+          without it the ad tag falls back to the coarse User-Agent header.
+
+          Syntax is a whitespace-separated list of "Hint-Name Origin"
+          pairs. Note this is a one-way delegation: we hand hints to
+          s.magsrv.com only, and it has no effect on our own origin's
+          hint delivery to anyone else.
+        */}
+        <meta
+          httpEquiv="Delegate-CH"
+          content={
+            "Sec-CH-UA https://s.magsrv.com; " +
+            "Sec-CH-UA-Mobile https://s.magsrv.com; " +
+            "Sec-CH-UA-Arch https://s.magsrv.com; " +
+            "Sec-CH-UA-Model https://s.magsrv.com; " +
+            "Sec-CH-UA-Platform https://s.magsrv.com; " +
+            "Sec-CH-UA-Platform-Version https://s.magsrv.com; " +
+            "Sec-CH-UA-Bitness https://s.magsrv.com; " +
+            "Sec-CH-UA-Full-Version-List https://s.magsrv.com; " +
+            "Sec-CH-UA-Full-Version https://s.magsrv.com;"
+          }
+        />
+      </head>
       <body className="flex min-h-dvh flex-col bg-bg-deepest text-text-primary">
         <Header />
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
+        {/* ExoClick native / recommendation grid (zone 6053376).
+            Sits below all content and above the footer. Mounted once in
+            the layout so every browse page — home, movies, tv, animations,
+            genres, trending — shares it; the component's own session cap
+            means it renders once per 30 minutes regardless of how many
+            pages you browse, and it self-suppresses on /watch. */}
+        <ExoclickNative className="mx-auto w-full max-w-7xl px-4 py-10 md:px-6 md:py-14 lg:px-8" />
         <Footer />
         <MobileNav />
         {/* ExoClick floating video slider (zone 6049852). One instance per

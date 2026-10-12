@@ -59,6 +59,21 @@ export const EXOCLICK = {
   sliderShownKey: "movbox:ad:slider:done",
 
   /**
+   * NATIVE / recommendation widget zone — a 2x2 grid of sponsored cards,
+   * not a banner. Verified against the live zone: it renders
+   * `.msg-native-widget` markup at 300x250 by default.
+   *
+   * Themed by components/ads/exoclick-native.css, which MUST anchor on
+   * the `#movbox-native-ads` wrapper that ExoclickNative renders. See the
+   * note in that component before renaming anything.
+   */
+  nativeZoneId: "6053376",
+  nativeZoneClass: "eas6a97888e2",
+
+  /** localStorage key holding the timestamp we last showed the native grid. */
+  nativeShownKey: "movbox:ad:native:done",
+
+  /**
    * Domain-verification token. Served as a bare file from
    * public/031ad9ce8395a62fcb614b9fd7410dcd.html so the ExoClick
    * dashboard can fetch it from the site root and confirm ownership.
