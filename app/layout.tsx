@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Footer } from "@/components/layout/Footer";
 import { ExoclickVideoSlider } from "@/components/ads/ExoclickVideoSlider";
-import { ExoclickNative } from "@/components/ads/ExoclickNative";
+import { SponsoredRow } from "@/components/ads/SponsoredRow";
 import { SITE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -124,13 +124,14 @@ export default function RootLayout({
       <body className="flex min-h-dvh flex-col bg-bg-deepest text-text-primary">
         <Header />
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
-        {/* ExoClick native / recommendation grid (zone 6053376).
-            Sits below all content and above the footer. Mounted once in
-            the layout so every browse page — home, movies, tv, animations,
-            genres, trending — shares it; the component's own session cap
-            means it renders once per 30 minutes regardless of how many
-            pages you browse, and it self-suppresses on /watch. */}
-        <ExoclickNative className="mx-auto w-full max-w-7xl px-4 py-10 md:px-6 md:py-14 lg:px-8" />
+        {/* ExoClick sponsored card row (recommendation widget zone 6054480).
+            Sits below all content and above the footer. Mounted once in the
+            layout so every browse page — home, movies, tv, animations,
+            genres, trending — shares it. Rendered at MovieCard geometry so
+            it reads as one more row rather than a banner, and deliberately
+            uncapped: one row per page, below the fold, is not something a
+            visitor registers twice. */}
+        <SponsoredRow className="mx-auto w-full max-w-7xl py-8 md:py-12" />
         <Footer />
         <MobileNav />
         {/* ExoClick floating video slider (zone 6049852). One instance per

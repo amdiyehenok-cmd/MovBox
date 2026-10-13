@@ -59,16 +59,39 @@ export const EXOCLICK = {
   sliderShownKey: "movbox:ad:slider:done",
 
   /**
-   * NATIVE / recommendation widget zone — a 2x2 grid of sponsored cards,
-   * not a banner. Verified against the live zone: it renders
-   * `.msg-native-widget` markup at 300x250 by default.
+   * NATIVE / recommendation widget zone — a row of 4 sponsored cards that we
+   * render as a movie row so it is indistinguishable from real content.
+   * Verified against the live zone: it renders `.msg-native-widget` markup.
    *
-   * Themed by components/ads/exoclick-native.css, which MUST anchor on
-   * the `#movbox-native-ads` wrapper that ExoclickNative renders. See the
-   * note in that component before renaming anything.
+   * Themed by components/ads/SponsoredRow.tsx + lib/ads/sponsoredRowCss.ts,
+   * which MUST anchor on the `#movbox-sponsored-ads` wrapper that component
+   * renders. See the note in that component before renaming anything.
    */
   nativeZoneId: "6053376",
   nativeZoneClass: "eas6a97888e2",
+
+  /**
+   * RECOMMENDATION WIDGET — Grid (4x1). The card-format inventory the whole
+   * in-feed native strategy is built on: four cards that sit in a row and
+   * can be styled to match MovieCard exactly.
+   *
+   * Zone 6054480 is the primary. 6053382 is a second, identical Grid (4x1)
+   * kept as a rotation/A-B slot so we are not dependent on one zone's fill.
+   *
+   * Measured on the live zones: 6054480 and 6053382 both fill with 4 items;
+   * 6053376 is a 300x250 Banner that happens to also emit 4 items.
+   */
+  widgetZoneId: "6054480",
+  widgetZoneClass: "eas6a97888e20",
+  widgetZoneAltId: "6053382",
+
+  /**
+   * OUT-STREAM video zone (class `eas6a97888e37`). Renders as a playable
+   * video unit that the player hands control to when the viewer pauses —
+   * a pause is a natural, low-friction moment to show a video ad.
+   */
+  outStreamZoneId: "6054510",
+  outStreamZoneClass: "eas6a97888e37",
 
   /** localStorage key holding the timestamp we last showed the native grid. */
   nativeShownKey: "movbox:ad:native:done",
