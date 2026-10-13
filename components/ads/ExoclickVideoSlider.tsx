@@ -103,7 +103,11 @@ export function ExoclickVideoSlider() {
         id={`exoclick-slider-${EXOCLICK.sliderZoneId}`}
         strategy="afterInteractive"
       >
-        {(window.AdProvider = window.AdProvider || []).push({ serve: {} })}
+        {/* String body, not an expression: an expression child is evaluated
+            during prerender, where `window` does not exist. Safe today only
+            because the `allowed` gate keeps this off SSR — don't rely on
+            that if the gate is ever removed. */}
+        {"(window.AdProvider = window.AdProvider || []).push({ serve: {} });"}
       </Script>
     </div>
   );

@@ -80,7 +80,12 @@ export function SponsoredRow({
             id={`exoclick-sponsored-${EXOCLICK.widgetZoneId}`}
             strategy="afterInteractive"
           >
-            {(window.AdProvider = window.AdProvider || []).push({ serve: {} })}
+            {/* Body is a STRING on purpose. An expression child gets
+                evaluated during prerender, where `window` does not exist —
+                that is a build-time crash ("window is not defined",
+                exported from /_not-found). A string is only ever written
+                into a <script> tag, and only ever runs in the browser. */}
+            {"(window.AdProvider = window.AdProvider || []).push({ serve: {} });"}
           </Script>
 
           {/* Injected AFTER the markup on purpose — see sponsoredRowCss.ts. */}
