@@ -170,6 +170,26 @@ export const SPONSORED_ROW_CSS = `
   border-radius: 0 !important;
 }
 
+/* The text block normally sits BELOW the art in normal flow, which puts it
+   outside a 2:3 card that clips overflow — the title's `bottom: 0` then
+   anchors to this box instead of to the card and gets clipped away.
+   Stretching it over the whole card re-anchors the title to the card's
+   own bottom edge, which is where MovieCard's title stack belongs. */
+#movbox-sponsored-ads .msg-native-widget-item-content {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 3 !important;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+  display: block !important;
+  float: none !important;
+  pointer-events: none !important;
+}
+
 /* Text block — sits under the art, like MovieCard's title/meta stack. */
 #movbox-sponsored-ads .msg-native-widget-item-title {
   position: absolute !important;
