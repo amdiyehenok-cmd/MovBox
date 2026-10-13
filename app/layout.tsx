@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Footer } from "@/components/layout/Footer";
 import { ExoclickVideoSlider } from "@/components/ads/ExoclickVideoSlider";
-import { SponsoredRow } from "@/components/ads/SponsoredRow";
+import { ExoclickOutStream } from "@/components/ads/ExoclickOutStream";
 import { SITE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -124,20 +124,16 @@ export default function RootLayout({
       <body className="flex min-h-dvh flex-col bg-bg-deepest text-text-primary">
         <Header />
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
-        {/* ExoClick sponsored card row (recommendation widget zone 6054480).
-            Sits below all content and above the footer. Mounted once in the
-            layout so every browse page — home, movies, tv, animations,
-            genres, trending — shares it. Rendered at MovieCard geometry so
-            it reads as one more row rather than a banner, and deliberately
-            uncapped: one row per page, below the fold, is not something a
-            visitor registers twice. */}
-        <SponsoredRow className="mx-auto w-full max-w-7xl py-8 md:py-12" />
         <Footer />
         <MobileNav />
         {/* ExoClick floating video slider (zone 6049852). One instance per
             document — the library has no dedupe of its own. Self-suppresses
             on /watch, where the in-stream pre-roll already runs. */}
         <ExoclickVideoSlider />
+        {/* ExoClick out-stream unit (zone 6054510). Mounted everywhere but
+            only ever served from /watch when the viewer pauses — see
+            requestOutStreamAd() in components/ads/ExoclickOutStream.tsx. */}
+        <ExoclickOutStream />
       </body>
     </html>
   );

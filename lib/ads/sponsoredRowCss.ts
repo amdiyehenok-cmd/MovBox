@@ -171,7 +171,7 @@ export const SPONSORED_ROW_CSS = `
 }
 
 /* The text block normally sits BELOW the art in normal flow, which puts it
-   outside a 2:3 card that clips overflow — the title's `bottom: 0` then
+   outside a 2:3 card that clips overflow — the title's "bottom: 0" then
    anchors to this box instead of to the card and gets clipped away.
    Stretching it over the whole card re-anchors the title to the card's
    own bottom edge, which is where MovieCard's title stack belongs. */

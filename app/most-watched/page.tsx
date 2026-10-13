@@ -4,6 +4,7 @@ import { MediaGrid } from "@/components/media/MediaGrid";
 import { getBoxmoviesHome } from "@/lib/data";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import type { MediaCard } from "@/lib/types";
+import { SponsoredRow } from "@/components/ads/SponsoredRow";
 
 export const revalidate = 1800;
 
@@ -63,6 +64,7 @@ export default async function MostWatchedPage() {
         The titles people are binging right now.
       </p>
       <MediaGrid items={items} emptyMessage="No data right now." />
+      <SponsoredRow title="You might also like" />
     </div>
   );
 }

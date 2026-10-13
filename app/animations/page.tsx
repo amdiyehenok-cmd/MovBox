@@ -6,6 +6,7 @@ import {
 } from "@/lib/data";
 import { BrowseClient } from "@/components/browse/BrowseClient";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
+import { SponsoredRow } from "@/components/ads/SponsoredRow";
 
 export const revalidate = 600;
 
@@ -73,6 +74,7 @@ export default async function AnimationsPage() {
         gridTitle="Anime & Animation"
         emptyLabel="No animations match these filters. Try widening your selection."
       />
+      <SponsoredRow title="You might also like" />
     </div>
   );
 }

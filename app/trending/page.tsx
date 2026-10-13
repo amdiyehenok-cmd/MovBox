@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Flame } from "lucide-react";
 import { TrendingRow } from "@/components/home/TrendingRow";
+import { SponsoredRow } from "@/components/ads/SponsoredRow";
 import { getBoxmoviesTrending } from "@/lib/data";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import type { MediaCard } from "@/lib/types";
@@ -91,6 +92,8 @@ export default async function TrendingPage() {
           iconClassName="text-accent-bright"
           items={topRated}
         />
+        {/* Sponsored cards after the third row, matching the home page. */}
+        <SponsoredRow title="You might also like" />
         <TrendingRow
           title="New Releases"
           iconName="sparkles"

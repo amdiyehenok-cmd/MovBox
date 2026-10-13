@@ -5,6 +5,7 @@ import {
 } from "@/lib/data";
 import { BrowseClient } from "@/components/browse/BrowseClient";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
+import { SponsoredRow } from "@/components/ads/SponsoredRow";
 
 export const revalidate = 300;
 
@@ -65,6 +66,7 @@ export default async function TVPage() {
         gridTitle="All TV Series"
         emptyLabel="No TV series match these filters. Try widening your selection."
       />
+      <SponsoredRow title="You might also like" />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import {
 } from "@/lib/data";
 import { BrowseClient } from "@/components/browse/BrowseClient";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
+import { SponsoredRow } from "@/components/ads/SponsoredRow";
 
 export const revalidate = 300; // 5 min â€” filter pages re-fetch on change anyway
 
@@ -67,6 +68,7 @@ export default async function MoviesPage() {
         gridTitle="All Movies"
         emptyLabel="No movies match these filters. Try widening your selection."
       />
+      <SponsoredRow title="You might also like" />
     </div>
   );
 }

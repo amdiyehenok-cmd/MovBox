@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import type { BoxSource, BoxCaption } from "@/lib/types";
 import { PrerollAd } from "@/components/ads/PrerollAd";
+import { requestOutStreamAd } from "@/components/ads/ExoclickOutStream";
 import { recordUserProgress } from "@/lib/user-data";
 import { cn } from "@/lib/utils";
 
@@ -499,6 +500,24 @@ export function Player({
     bufferedEvents.forEach((e) => video.addEventListener(e, paintBuffered));
     paintBuffered();
 
+    // ---- Out-stream ad on pause --------------------------------------
+    // A pause is the cheapest moment to show a video ad: the viewer has
+    // already stopped, nothing is competing for their attention, and
+    // resuming costs one tap. Much lower pressure than the pre-roll,
+    // which interrupts the reason they came.
+    //
+    // Deliberately a DOM listener inside this existing effect rather than
+    // a new hook or a new prop — this component's hook count is pinned and
+    // its effects are all above the early returns. requestOutStreamAd()
+    // is a module function that self-guards (watch page only, 10-minute
+    // cooldown), so this can fire freely on every pause.
+    const onPause = () => {
+      // Reaching the end is not a pause the viewer chose; don't ambush it.
+      if (video.ended) return;
+      requestOutStreamAd();
+    };
+    video.addEventListener("pause", onPause);
+
     return () => {
       clearTimeout(stallTimer);
       video.removeEventListener("loadedmetadata", onLoaded);
@@ -507,6 +526,7 @@ export function Player({
       video.removeEventListener("loadeddata", markSettled);
       video.removeEventListener("progress", markSettled);
       video.removeEventListener("error", markSettled);
+      video.removeEventListener("pause", onPause);
       bufferedEvents.forEach((e) => video.removeEventListener(e, paintBuffered));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
