@@ -98,21 +98,51 @@ function text(node: Element | null | undefined): string {
 /**
  * Parse the first <Linear> creative out of a VAST document.
  *
- * Returns null when the response isn't parseable VAST or has no Linear
- * creative at all (e.g. an ad blocker returned an empty document).
+ * Returns a `reason` alongside the creative on every failure path. The ad
+ * server rotates creatives, so a single parse failure can mean "this one
+ * response was malformed" rather than "the zone is broken" — and with the
+ * old signature both looked identical in the console as
+ * "Unparseable VAST", which is why this went undiagnosed for days.
  */
-function parseVast(xmlText: string): VastCreative | null {
-  if (typeof window === "undefined") return null;
+function parseVast(xmlText: string): {
+  creative: VastCreative | null;
+  reason: string;
+} {
+  if (typeof window === "undefined") {
+    return { creative: null, reason: "no-dom" };
+  }
   let doc: Document;
   try {
     doc = new DOMParser().parseFromString(xmlText, "application/xml");
-  } catch {
-    return null;
+  } catch (e) {
+    return {
+      creative: null,
+      reason: `domparser-threw: ${e instanceof Error ? e.message : String(e)}`,
+    };
   }
-  if (doc.querySelector("parsererror")) return null;
+
+  const parserError = doc.querySelector("parsererror");
+  if (parserError) {
+    const msg = (parserError.textContent || "").trim().replace(/\s+/g, " ").slice(0, 200);
+    return { creative: null, reason: `parsererror: ${msg || "(empty)"}` };
+  }
+
+  const root = doc.documentElement;
+  if (!root || root.nodeName !== "VAST") {
+    return {
+      creative: null,
+      reason: `root-is-${root ? root.nodeName : "null"}: ${xmlText.slice(0, 120)}`,
+    };
+  }
 
   const linear = doc.querySelector("Linear");
-  if (!linear) return null;
+  if (!linear) {
+    // No video creative in this response — usually a no-fill rotation.
+    return {
+      creative: null,
+      reason: `no-linear (ads:${doc.querySelectorAll("Ad").length} inline:${doc.querySelectorAll("InLine").length} wrapper:${doc.querySelectorAll("Wrapper").length})`,
+    };
+  }
 
   const mediaFiles: VastMediaFile[] = [];
   linear.querySelectorAll("MediaFile").forEach((node) => {
@@ -147,12 +177,15 @@ function parseVast(xmlText: string): VastCreative | null {
   });
 
   return {
-    mediaFiles,
-    impressions,
-    clickThrough,
-    progress,
-    errorTrackers,
-    skipOffsetS: parseVastTime(linear.getAttribute("skipoffset")),
+    reason: "ok",
+    creative: {
+      mediaFiles,
+      impressions,
+      clickThrough,
+      progress,
+      errorTrackers,
+      skipOffsetS: parseVastTime(linear.getAttribute("skipoffset")),
+    },
   };
 }
 
@@ -216,6 +249,49 @@ export function PrerollAd({ onComplete }: PrerollAdProps) {
   // Fetch + parse the VAST tag, fire the impression, then start the ad.
   useEffect(() => {
     let cancelled = false;
+
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+    /**
+     * One fetch + parse attempt.
+     *
+     * Retried once: ExoClick rotates creatives per request and a single
+     * response can come back without a <Linear> (no-fill rotation) or in a
+     * shape this parser rejects. A fresh request almost always returns a
+     * usable one, so a second attempt converts a lost impression into a
+     * played one — and costs 400ms worst case.
+     */
+    const attempt = async (n: number): Promise<VastCreative> => {
+      // credentials: "include" so ExoClick's own zone-cap cookie
+      // round-trips and they can apply server-side capping. Their
+      // response sets Access-Control-Allow-Credentials specifically
+      // to allow this.
+      const res = await fetch(EXOCLICK.inStreamVastUrl, {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        throw Object.assign(new Error(`VAST fetch ${res.status}`), {
+          httpStatus: res.status,
+        });
+      }
+      const xml = await res.text();
+
+      const { creative, reason } = parseVast(xml);
+      if (!creative) {
+        // Log enough to tell "zone is unfilled" from "we cannot parse a
+        // perfectly good response" without guessing from the message alone.
+        console.warn(
+          `[preroll] attempt ${n} rejected — reason=${reason} bytes=${xml.length}`,
+        );
+        throw Object.assign(new Error(`Unparseable VAST (${reason})`), {
+          vastReason: reason,
+          bytes: xml.length,
+        });
+      }
+      return creative;
+    };
+
     (async () => {
       try {
         // If we've already shown a pre-roll in this session, skip
@@ -225,19 +301,17 @@ export function PrerollAd({ onComplete }: PrerollAdProps) {
           return;
         }
 
-        // credentials: "include" so ExoClick's own zone-cap cookie
-        // round-trips and they can apply server-side capping. Their
-        // response sets Access-Control-Allow-Credentials specifically
-        // to allow this.
-        const res = await fetch(EXOCLICK.inStreamVastUrl, {
-          credentials: "include",
-        });
-        if (!res.ok) throw new Error(`VAST fetch ${res.status}`);
-        const xml = await res.text();
+        let creative: VastCreative;
+        try {
+          creative = await attempt(1);
+        } catch (first) {
+          if (cancelled) return;
+          await sleep(400);
+          if (cancelled) return;
+          creative = await attempt(2);
+        }
         if (cancelled) return;
 
-        const creative = parseVast(xml);
-        if (!creative) throw new Error("Unparseable VAST");
         errorTrackersRef.current = creative.errorTrackers;
 
         const url = pickPlayableMedia(creative.mediaFiles);

@@ -24,21 +24,21 @@ import "./exoclick-native.css";
  *
  * Placement: below the fold, after real content. This widget is four
  * cards; putting it above content reads as "this is what the site is".
+ *
+ * FREQUENCY: deliberately uncapped.
+ *
+ * It used to write a 30-minute suppression key on mount, before the ad
+ * had even been requested — so a no-fill, a blocked loader or a slow
+ * first paint silently burned the slot and the widget vanished from the
+ * rest of the session while nothing had ever been shown. Measured on the
+ * live site: zero ad elements on a page whose key had been set by an
+ * earlier visit that never rendered.
+ *
+ * Four small cards above the footer, below all real content, is the
+ * standard sponsored row and not something a visitor notices twice. The
+ * intrusive formats are the ones that need capping — the floating video
+ * slider keeps its own TTL in ExoclickVideoSlider.tsx — not this one.
  */
-
-const SESSION_TTL_MS = 30 * 60 * 1000;
-
-function wasShownRecently(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    const raw = window.localStorage.getItem(EXOCLICK.nativeShownKey);
-    if (!raw) return false;
-    const t = Number(raw);
-    return Number.isFinite(t) && Date.now() - t < SESSION_TTL_MS;
-  } catch {
-    return false;
-  }
-}
 
 interface ExoclickNativeProps {
   className?: string;
@@ -51,18 +51,19 @@ export function ExoclickNative({ className }: ExoclickNativeProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     // Keep it off the watch page — that screen already runs the in-stream
-    // pre-roll, and a recommendation grid under a full-bleed player is
-    // clutter at best.
+    // pre-roll and a floating video slider, and a recommendation grid under
+    // a full-bleed player is clutter at best.
     if (pathname?.startsWith("/watch")) {
       setAllowed(false);
       return;
     }
-    if (wasShownRecently()) return;
-    try {
-      window.localStorage.setItem(EXOCLICK.nativeShownKey, String(Date.now()));
-    } catch {
-      /* noop */
-    }
+    setAllowed(true);
+  }, [pathname]);
+
+  // Count the impression once per page view. Fire-and-forget: an ad
+  // counter must never be able to break the page it is on.
+  useEffect(() => {
+    if (!allowed) return;
     try {
       void fetch("/api/ads/impression", {
         method: "POST",
@@ -73,8 +74,7 @@ export function ExoclickNative({ className }: ExoclickNativeProps) {
     } catch {
       /* noop */
     }
-    setAllowed(true);
-  }, [pathname]);
+  }, [allowed]);
 
   if (!allowed) return null;
 
