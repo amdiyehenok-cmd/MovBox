@@ -93,6 +93,59 @@ export const EXOCLICK = {
   outStreamZoneId: "6054510",
   outStreamZoneClass: "eas6a97888e37",
 
+  /**
+   * INSTANT MESSAGE — native unit (dashboard: "instant message").
+   *
+   * Uses the same generic `ad-provider.js` loader as the slider and the
+   * sponsored grid, so it is wired exactly like SponsoredRow: an <ins>
+   * carrying the zone class, then one AdProvider push. It renders as a
+   * single native message card rather than a four-card row, so it goes on
+   * pages that have no room for a full row (detail pages) instead of
+   * crowding the browse rows that already carry SponsoredRow.
+   */
+  instantMessageZoneId: "6057176",
+  instantMessageZoneClass: "eas6a97888e6",
+
+  /**
+   * POPUNDER — zone 6057172.
+   *
+   * DIFFERENT DELIVERY MECHANISM from every other zone here. The slider,
+   * grid and instant message all use the `a.magsrv.com` ad-provider loader.
+   * The popunder does not: it is a self-contained IIFE (popMagic v12) that
+   * carries its own `adConfig` and talks to `a.pemsrv.com` /
+   * `s.pemsrv.com` directly. That is why the dashboard hands over a raw
+   * inline <script> rather than an <ins> tag.
+   *
+   * The vendor blob is ~16KB of minified, obfuscated third-party code and
+   * cannot be pasted into a JSX string body without escaping hazards, so it
+   * is shipped verbatim as a static asset at /popunder-6057172.js and
+   * loaded via <Script src>. It must stay byte-identical to what the
+   * dashboard issued — do not reformat or "tidy" it. Regenerate it from the
+   * dashboard snippet if the zone is ever reissued.
+   */
+  popunderZoneId: "6057172",
+  popunderScriptSrc: "/popunder-6057172.js",
+
+  /**
+   * Popunder delivery settings, mirrored from the dashboard's adConfig for
+   * documentation. They live in the vendor blob itself — this is a record of
+   * what we asked for, not a second source of truth. If one of these needs to
+   * change, change it in the dashboard and re-copy the snippet.
+   *
+   *   frequency_period 60 / frequency_count 1
+   *       One popunder per 60 minutes per visitor, enforced by them via
+   *       cookie. We do not add a second cap of our own — two caps on one
+   *       format means neither is the one actually governing.
+   *   trigger_method 3
+   *       Their engagement trigger (user interaction), not an onload popup.
+   *   capping_enabled true
+   *   tcf_enabled true
+   *       EU consent handling is on. Leave it on.
+   *   agego_cross_site_enabled true
+   *       Enables their cross-site age-gate redirect flow.
+   */
+  popunderFrequencyMinutes: 60,
+
   /** localStorage key holding the timestamp we last showed the native grid. */
   nativeShownKey: "movbox:ad:native:done",
 
