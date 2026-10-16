@@ -5,6 +5,7 @@ import { MobileNav } from "@/components/layout/MobileNav";
 import { Footer } from "@/components/layout/Footer";
 import { ExoclickVideoSlider } from "@/components/ads/ExoclickVideoSlider";
 import { ExoclickOutStream } from "@/components/ads/ExoclickOutStream";
+import { AdsterraScripts } from "@/components/ads/AdsterraScripts";
 import { SITE_URL } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -134,6 +135,12 @@ export default function RootLayout({
             only ever served from /watch when the viewer pauses — see
             requestOutStreamAd() in components/ads/ExoclickOutStream.tsx. */}
         <ExoclickOutStream />
+        {/* Adsterra direct-link units (zones pl31180787 + pl31180785).
+            No visible element — the loader attaches its own listeners and
+            renders nothing in our tree. Mounted once in the root layout and
+            gated on the entry route; see lib/ads/adsterra.ts for the
+            placement policy and the env kill-switches. */}
+        <AdsterraScripts />
       </body>
     </html>
   );
