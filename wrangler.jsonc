@@ -1,0 +1,49 @@
+{
+  // OpenNext (Cloudflare Workers) build output.
+  //
+  // This file is REQUIRED at the repo root. Without it, OpenNext
+  // auto-generates one from the `name` field in package.json -- and if
+  // that is wrong, the deploy fails with:
+  //   "Service binding 'WORKER_SELF_REFERENCE' references Worker '<x>'
+  //    which was not found. [code: 10143]"
+  // The self-reference binding MUST point at the worker being deployed,
+  // i.e. `service` has to equal `name` below. Rename the worker ->
+  // change BOTH, and change package.json's `name` too.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "movbox",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Self-reference: the worker calls itself to revalidate cached pages
+  // (on-demand ISR). `service` must equal the worker name above.
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "movbox"
+    }
+  ],
+  // R2 bucket backing the ISR / incremental cache.
+  // The bucket name is a leftover from the project's previous name; it is
+  // internal-only (never user-visible) and already exists in the account,
+  // so it is referenced as-is rather than recreated.
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "hmovies-opennext-cache"
+    }
+  ],
+  // Cloudflare Images binding (next/image). The app currently sets
+  // images.unoptimized = true so posters are served straight from the
+  // content CDN, but the binding is kept because it was already provisioned
+  // in the account and costs nothing when unused.
+  "images": {
+    "binding": "IMAGES"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
